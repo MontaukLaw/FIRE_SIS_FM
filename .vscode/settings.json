@@ -1,0 +1,24 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "main.h": "c",
+        "string.h": "c",
+        "iwdg.h": "c",
+        "flash.h": "c",
+        "rm1002.h": "c",
+        "stdint.h": "c",
+        "limits": "c",
+        "tim.h": "c",
+        "adjust.h": "c",
+        "py32f0xx_hal.h": "c",
+        "py32f002bxx_start_kit.h": "c",
+        "sys.h": "c",
+        "led.h": "c",
+        "py32f002b_hal_flash.h": "c",
+        "dev_config.h": "c",
+        "usart.h": "c",
+        "1002.h": "c",
+        "app_usart.h": "c",
+        "cstdint": "cpp"
+    }
+}

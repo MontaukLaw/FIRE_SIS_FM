@@ -1,0 +1,26 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "ARM-GCC",
+            "compilerPath": "C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.10\\bin\\arm-none-eabi-gcc.exe",
+            "intelliSenseMode": "gcc-arm",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/HAL_Driver/Inc",
+                "${workspaceFolder}/User/Inc",
+                "D:\\work\\FIRE_SIS\\SYCC4X4---4.0.0\\HAL_Driver\\Inc\\",
+                
+                // ARM GCC 标准库
+                "C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.10\\arm-none-eabi\\include\\",
+
+            ],
+
+            "defines": [
+            ]
+        }
+    ]
+}
