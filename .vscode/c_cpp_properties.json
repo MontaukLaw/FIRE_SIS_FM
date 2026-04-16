@@ -12,7 +12,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/HAL_Driver/Inc",
                 "${workspaceFolder}/User/Inc",
-                "D:\\work\\FIRE_SIS\\SYCC4X4---4.0.0\\HAL_Driver\\Inc\\",
+                "D:\\work\\INFO\\PY32F002B_Firmware_V1.2.1\\Drivers\\CMSIS\\Device\\PY32F0xx\\Include",
                 
                 // ARM GCC 标准库
                 "C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.10\\arm-none-eabi\\include\\",

@@ -1,26 +1,36 @@
-./output/arithmetic.o: ..\User\Src\arithmetic.c ..\User\Inc\arithmetic.h \
-  ..\HAL_Driver\Inc\py32f0xx_hal.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_conf.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_def.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h \
-  C:\Keil_v5\ARM\PACK\ARM\CMSIS\6.1.0\CMSIS\Core\Include\core_cm0plus.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_cortex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_adc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_crc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_comp.h \
-  ..\HAL_Driver\Inc\py32f002b_ll_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_flash.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_i2c.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_pwr.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_lptim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_uart.h
+.\output\arithmetic.o: ..\User\Src\arithmetic.c
+.\output\arithmetic.o: ..\User\Inc\arithmetic.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_conf.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_def.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\core_cm0plus.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_version.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_compiler.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_armcc.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_exti.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_cortex.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_adc.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_crc.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_comp.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_ll_exti.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_flash.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_i2c.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_pwr.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_spi.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_tim.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_lptim.h
+.\output\arithmetic.o: ..\HAL_Driver\Inc\py32f002b_hal_uart.h
+.\output\arithmetic.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

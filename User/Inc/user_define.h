@@ -8,6 +8,10 @@
 #define LED_W_PORT GPIOC
 #define LED_W_PIN GPIO_PIN_1
 
+// 改了一下.
+#define RM_RST_PORT LED_W_PORT
+#define RM_RST_PIN LED_W_PIN
+
 #define VOICE_PORT GPIOB
 #define VOICE_PIN GPIO_PIN_2
 
@@ -71,87 +75,200 @@
 #define MAX_SENSORS TOTAL_SENSOR_NUMBER
 #define MAX_CH_NMB MAX_SENSORS
 
-typedef enum
-{
-    ST_IDLE = 0,
-    ST_CONTACT_PENDING,
-    ST_TRACKING,
-    ST_ENDING
-} TouchState;
+#define G_SENSOR_INT_PORT GPIOA
+#define G_SENSOR_INT_PIN GPIO_PIN_7
 
-struct g_baseline_tracking_t
-{
-    uint8_t initialized;
-    uint8_t thresholds_ready;
-    // 通道缓冲
-    float base_line[MAX_SENSORS];
-    float base_noise[MAX_SENSORS];
+#define SLEEP_CHECK_MAX 5000 // ms
 
-    float diff_f[MAX_SENSORS];
-    float diff_norm_f[MAX_SENSORS]; // EMA 后的归一化值
+// PA1 -> SPI1_MISO
+// PA0 -> SPI1_MOSI
+// PB0 -> SPI1_SCK
+// PB5 -> SPI1_NSS
 
-    float val_over_threshold[MAX_SENSORS]; // 阈后强度（≥0）
-    bool over_th[MAX_SENSORS];
+#define SPI_SCK_PORT GPIOB
+#define SPI_SCK_PIN GPIO_PIN_0
 
-    // 强度与质心
-    float omiga_sig; // 幅度制总强度  Σ(sig)
-    float sum_idx;   // 幅度制加权和  Σ(sig*i)
-    float avg_th;    // 平均单通道门限
-    uint16_t C_act;  // 活跃通道数
+#define SPI_MISO_PORT GPIOA
+#define SPI_MISO_PIN GPIO_PIN_1
 
-    float s_on, s_hold, s_off;                   // 幅度制
-    uint32_t s_on_norm, s_hold_norm, s_off_norm; // 归一制
-    uint16_t c_on, c_hold, c_off;
+#define SPI_MOSI_PORT GPIOA
+#define SPI_MOSI_PIN GPIO_PIN_0
 
-    uint32_t quiet_up_cnt[MAX_SENSORS];
-    uint32_t over_th_cnt[MAX_SENSORS];
-};
+#define SPI_NSS_PORT GPIOB
+#define SPI_NSS_PIN GPIO_PIN_5
+
+#define NFC_INT_PORT GPIOA
+#define NFC_INT_PIN GPIO_PIN_5
+
+#define NFC_PWDN_PORT GPIOB
+#define NFC_PWDN_PIN GPIO_PIN_1
+
+/* PCD 命令字 */
+#define PCD_IDLE 0x00
+#define PCD_AUTHENT 0x0E
+#define PCD_RECEIVE 0x08
+#define PCD_TRANSMIT 0x04
+#define PCD_TRANSCEIVE 0x0C
+#define PCD_RESETPHASE 0x0F
+#define PCD_CALCRC 0x03
+
+/* Registers bits */
+#define TX_IEN BIT(6)
+#define RX_IEN BIT(5)
+#define IDEL_IEN BIT(4)
+#define ERR_IEN BIT(1)
+#define TIMER_IEN BIT(0)
+
+#define TX_IRQ BIT(6)
+#define RX_IRQ BIT(5)
+#define IDEL_IRQ BIT(4)
+#define ERR_IRQ BIT(1)
+#define TIMER_IRQ BIT(0)
+
+#define COLL_ERR BIT(3)
+#define CRC_ERR BIT(2)
+#define PARITY_ERR BIT(1)
+#define PROTOCOL_ERR BIT(0)
+
+#define COLLPOS 0x1F
+
+#define RX_ALIGN (BIT(4) | BIT(5) | BIT(6))
+#define TX_LAST_BITS (BIT(0) | BIT(1) | BIT(2))
+
+/*Hal transceive status code */
+#define HAL_STATUS_OK (0)
+#define HAL_STATUS_TIMEOUT (-1)
+#define HAL_STATUS_AUTH_ERR (-4)
+#define HAL_STATUS_CODE_ERR (-6)
+#define HAL_STATUS_NOAUTH_ERR (-10)
+#define HAL_STATUS_BITCOUNT_ERR (-11)
+#define HAL_STATUS_WRITE_ERR (-15)
+#define HAL_STATUS_FRAMINGERR (-21)
+#define HAL_STATUS_UNKNOWN_CMD (-23)
+#define HAL_STATUS_COLLERR (-24)
+#define HAL_STATUS_ACCESSTIMEOUT (-27)
+#define HAL_STATUS_INTEGRITY_ERR (-35)
+#define HAL_STATUS_PARAM_VAL_ERR (-60)
+#define HAL_STATUS_WRITE_REG_ERR (-61)
+#define HAL_STATUS_ERR (-125)
+#define HAL_STATUS_PROTOCOL_ERR (-126)
+#define HAL_STATUS_USER_ERR (-127)
+
+/* Registers address define */
+/* PAGE 0 */
+#define REG_COMMAND 0x01
+#define REG_COMIEN 0x02
+#define REG_DIVIEN 0x03
+#define REG_COMIRQ 0x04
+#define REG_DIVIRQ 0x05
+#define REG_ERROR 0x06
+#define REG_STATUS1 0x07
+#define REG_STATUS2 0x08
+#define REG_FIFODATA 0x09
+#define REG_FIFOLEVEL 0x0A
+#define REG_WATERLEVEL 0x0B
+#define REG_CONTROL 0x0C
+#define REG_BITFRAMING 0x0D
+#define REG_COLL 0x0E
+
+/* PAGE 1 */
+#define REG_MODE 0x11
+#define REG_TXMODE 0x12
+#define REG_RXMODE 0x13
+#define REG_TXCONTROL 0x14
+#define REG_TXASK 0x15
+#define REG_TXAUTO 0x15
+#define REG_TXSEL 0x16
+#define REG_RXSEL 0x17
+#define REG_RXTHRESHOLD 0x18
+#define REG_DEMOD 0x19
+#define REG_MFTX 0x1C
+#define REG_MFRX 0x1D
+#define REG_TYPEB 0x1E
+#define REG_SERIALSPEED 0x1F
+
+/* PAGE 2 */
+#define REG_CRCRESULTM 0x21
+#define REG_CRCRESULTL 0x22
+#define REG_MODWIDTH 0x24
+#define REG_RFCFG 0x26
+#define REG_GSN 0x27
+#define REG_CWGSP 0x28
+#define REG_MODGSP 0x29
+#define REG_TMODE 0x2A
+#define REG_TPRESCALER 0x2B
+#define REG_TRELOADH 0x2C
+#define REG_TRELOADL 0x2D
+#define REG_TCOUNTERVALUEH 0x2E
+#define REG_TCOUNTERVALUEL 0x2F
+
+/* PAGE 3 */
+#define REG_TESTSEL1 0x31
+#define REG_TESTSEL2 0x32
+#define REG_TESTPINEN 0x33
+#define REG_TESTPINVALUE 0x34
+#define REG_TESTBUS 0x35
+#define REG_AUTOTEST 0x36
+#define REG_VERSION 0x37
+#define REG_ANALOGTEST 0x38
+#define REG_TESTDAC1 0x39
+#define REG_TESTDAC2 0x3A
+#define REG_TESTADC 0x3B
+#define REG_SPECIAL 0x3F
+
+#define REG_PAGESEL 0x37
+#define GSPOUT 0x01
+
+#define PCD_CMD_I_BLOCK_Msk 0xe2
+#define PCD_CMD_I_BLOCK 0x02
+
+#define PCD_CMD_R_BLOCK_Msk 0xe6
+#define PCD_CMD_R_BLOCK 0xa2
+#define PCD_CMD_R_CID_Msk 0x08
+
+#define PCD_CMD_S_BLOCK_Msk 0xc7
+#define PCD_CMD_S_BLOCK 0xc2
+
+#define BIT0 (0x00000001U)
+#define BIT1 (0x00000002U)
+#define BIT2 (0x00000004U)
+#define BIT3 (0x00000008U)
+#define BIT4 (0x00000010U)
+#define BIT5 (0x00000020U)
+#define BIT6 (0x00000040U)
+#define BIT7 (0x00000080U)
+#define BIT8 (0x00000100U)
+#define BIT9 (0x00000200U)
+#define BIT10 (0x00000400U)
+#define BIT11 (0x00000800U)
+#define BIT12 (0x00001000U)
+#define BIT13 (0x00002000U)
+#define BIT14 (0x00004000U)
+#define BIT15 (0x00008000U)
+#define BIT16 (0x00010000U)
+#define BIT17 (0x00020000U)
+#define BIT18 (0x00040000U)
+#define BIT19 (0x00080000U)
+#define BIT20 (0x00100000U)
+#define BIT21 (0x00200000U)
+#define BIT22 (0x00400000U)
+#define BIT23 (0x00800000U)
+#define BIT24 (0x01000000U)
+#define BIT25 (0x02000000U)
+#define BIT26 (0x04000000U)
+#define BIT27 (0x08000000U)
+#define BIT28 (0x10000000U)
+#define BIT29 (0x20000000U)
+#define BIT30 (0x40000000U)
+#define BIT31 (0x80000000U)
+
+#define BIT(n) (1UL << (n))
 
 #define LEVEL_1 20
 #define LEVEL_2 100
 #define LEVEL_3 250
 
 #define TH_MIN_ABS 3.0f
-
-typedef enum
-{
-    WAVE_IDLE = 0,
-    WAVE_ACTIVE,
-    WAVE_REFRACTORY
-} wave_state_t;
-
-typedef struct
-{
-    wave_state_t state;
-
-    // uint16_t th_on;
-    // uint16_t th_off;
-
-    uint8_t on_count;
-    uint8_t off_count;
-
-    uint8_t on_count_limit;  // 进入触发需连续点数
-    uint8_t off_count_limit; // 退出触发需连续点数
-
-    uint16_t width;
-    uint16_t peak;
-    uint32_t area;
-    uint16_t activate_value; // 进入时的幅度值, 用于判断是否过小
-
-    uint16_t min_width;
-    uint16_t max_width;
-    uint16_t min_peak;
-
-    uint8_t refractory_cnt;
-    uint8_t refractory_len;
-
-    // 输出
-    uint8_t event_flag; // 检测到一个完整波
-    uint16_t event_peak;
-    uint16_t event_width;
-    uint32_t event_area;
-    
-} wave_detector_t;
 
 #define SC7A20_INIT_MAX 100
 

@@ -1,32 +1,63 @@
-./output/usart.o: ..\User\Src\usart.c ..\User\Inc\usart.h \
-  ..\HAL_Driver\Inc\py32f0xx_hal.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_conf.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_def.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h \
-  C:\Keil_v5\ARM\PACK\ARM\CMSIS\6.1.0\CMSIS\Core\Include\core_cm0plus.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_cortex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_adc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_crc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_comp.h \
-  ..\HAL_Driver\Inc\py32f002b_ll_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_flash.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_i2c.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_pwr.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_lptim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_uart.h ..\User\Inc\app_usart.h \
-  ..\User\Inc\main.h ..\HAL_Driver\Inc\py32f002bxx_Start_Kit.h \
-  ..\User\Inc\1002.h ..\User\Inc\adjust.h ..\User\Inc\led.h \
-  ..\User\Inc\tim.h ..\User\Inc\iwdg.h ..\User\Inc\flash.h \
-  ..\User\Inc\arithmetic.h ..\User\Inc\sys.h ..\User\Inc\I2C.h \
-  ..\User\Inc\user_define.h ..\User\Inc\voice_app.h \
-  ..\User\Inc\baseline_tracking.h ..\User\Src\sc7a20.h
+.\output\usart.o: ..\User\Src\usart.c
+.\output\usart.o: ..\User\Inc\usart.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_conf.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_def.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\core_cm0plus.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_version.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_compiler.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_armcc.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_exti.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_cortex.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_adc.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_crc.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_comp.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_ll_exti.h
+.\output\usart.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_flash.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_i2c.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_pwr.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_spi.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_tim.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_lptim.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002b_hal_uart.h
+.\output\usart.o: ..\User\Inc\app_usart.h
+.\output\usart.o: ..\User\Inc\usart.h
+.\output\usart.o: ..\User\Inc\main.h
+.\output\usart.o: ..\HAL_Driver\Inc\py32f002bxx_Start_Kit.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\output\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\output\usart.o: ..\User\Inc\user_define.h
+.\output\usart.o: ..\User\Inc\user_struct.h
+.\output\usart.o: ..\User\Inc\1002.h
+.\output\usart.o: ..\User\Inc\main.h
+.\output\usart.o: ..\User\Inc\adjust.h
+.\output\usart.o: ..\User\Inc\led.h
+.\output\usart.o: ..\User\Inc\tim.h
+.\output\usart.o: ..\User\Inc\iwdg.h
+.\output\usart.o: ..\User\Inc\flash.h
+.\output\usart.o: ..\User\Inc\arithmetic.h
+.\output\usart.o: ..\User\Inc\sys.h
+.\output\usart.o: ..\User\Inc\I2C.h
+.\output\usart.o: ..\User\Inc\app_usart.h
+.\output\usart.o: ..\User\Inc\voice_app.h
+.\output\usart.o: ..\User\Inc\baseline_tracking.h
+.\output\usart.o: ..\User\Src\sc7a20.h
+.\output\usart.o: ..\User\Inc\sleep.h
+.\output\usart.o: ..\User\Inc\mh1612s.h
+.\output\usart.o: ..\User\Inc\picc.h
+.\output\usart.o: ..\User\Inc\card_emu.h

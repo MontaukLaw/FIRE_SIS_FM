@@ -17,6 +17,7 @@
 ".\output\py32f002b_hal_flash.o"
 ".\output\py32f002b_it.o"
 ".\output\py32f002b_hal_msp.o"
+".\output\py32f002b_hal_spi.o"
 ".\output\adjust.o"
 ".\output\arithmetic.o"
 ".\output\flash.o"
@@ -32,6 +33,11 @@
 ".\output\voice_app.o"
 ".\output\baseline_tracking.o"
 ".\output\sc7a20.o"
+".\output\sleep.o"
+".\output\mh1612s.o"
+".\output\nfc_config.o"
+".\output\card_emu.o"
+".\output\picc.o"
 --library_type=microlib --strict --scatter ".\Output\Project.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

@@ -48,6 +48,72 @@ void sc7a20_init(void)
     sc7a20_reg_write(0x25, &SC7A20_REG[7], 1, Sensor_Wr_Addr); // int1 active low
 }
 
+// ===============================
+// SC7A20H 震动/运动中断配置（AOI1 -> INT1）
+// 用途：震动唤醒 MCU / 动作触发中断
+// 模式：非锁存（电平型），MCU 用上升沿 EXTI 捕获
+// ===============================
+void init_gsensor_for_interrupt(void)
+{
+
+    uint8_t init_data[16] = {0x3f, 0x88, 0x31, 0x40, 0x00, 0x00, 0x2a, 0x08, 0x02};
+
+    // CTRL_REG1 (0x20)
+    // ODR=25Hz, 低功耗模式, XYZ 三轴使能
+    // → 25Hz = 40ms/采样，决定 duration 的时间基准
+    sc7a20_reg_write(0x20, &init_data[0], 1, Sensor_Wr_Addr);
+
+    // CTRL_REG4 (0x23)
+    // BDU=1（高低字节锁存，防止读数撕裂）
+    // FS=±2g（灵敏度最高，适合震动检测）
+    // DLPF 部分开启（简单滤波）
+    sc7a20_reg_write(0x23, &init_data[1], 1, Sensor_Wr_Addr); // 2g量程
+
+    // CTRL_REG2 (0x21)
+    // HPIS1=1 → AOI1 使用高通滤波后的数据
+    // → 过滤重力（静态），只关注“变化/震动”
+    sc7a20_reg_write(0x21, &init_data[2], 1, Sensor_Wr_Addr);
+
+    // CTRL_REG3 (0x22)
+    // I1_AOI1=1 → AOI1 中断输出到 INT1 引脚
+    // → INT1 用于连接 MCU EXTI 唤醒/中断
+    sc7a20_reg_write(0x22, &init_data[3], 1, Sensor_Wr_Addr);
+
+    // CTRL_REG6 (0x25)
+    // INT2 不使用
+    // INT 引脚：推挽输出、默认极性（触发=高电平）
+    sc7a20_reg_write(0x25, &init_data[4], 1, Sensor_Wr_Addr);
+
+    // CTRL_REG5 (0x24)
+    // LIR_INT1=0 → 非锁存中断（推荐）
+    // → 条件成立时 INT=1，条件消失 INT 自动恢复
+    // → MCU 用“上升沿”捕获即可
+    sc7a20_reg_write(0x24, &init_data[5], 1, Sensor_Wr_Addr);
+
+    // AOI1_CFG (0x30)
+    // 0x2A = 0010 1010b
+    // XHIE=1, YHIE=1, ZHIE=1 → 三轴“高事件”检测
+    // AOI=0 → OR 逻辑（任意一轴超过门限就触发）
+    // → 典型“震动检测”配置
+    sc7a20_reg_write(0x30, &init_data[6], 1, Sensor_Wr_Addr);
+
+    // AOI1_THS (0x32)
+    // 门限值（1LSB ≈ 16mg @ ±2g）
+    // 0x08 ≈ 128mg
+    // 1 LSB ≈ 16 mg
+    // → 比 0x05 稍稳，减少误触发（推荐起点）
+    sc7a20_reg_write(0x32, &init_data[7], 1, Sensor_Wr_Addr);
+
+    // AOI1_DURATION (0x33)
+    // 触发需持续的采样周期数
+    // 当前 ODR=25Hz → 1周期≈40ms
+    // 0x01 → 需要持续约 40ms 才触发
+    // 0x02 → 需要持续约 80ms 才触发
+    // → 过滤瞬间毛刺，比 0 更稳定
+    sc7a20_reg_write(0x33, &init_data[8], 1, Sensor_Wr_Addr);
+
+}
+
 void count_base_g(float combin_acc)
 {
     if (if_data_init > 0)

@@ -48,6 +48,7 @@ void APP_GPIOInit(void)
 	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
 	HAL_Delay(200);
 	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_SET);
+	
 }
 
 /**

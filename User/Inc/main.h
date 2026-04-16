@@ -4,6 +4,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "py32f0xx_hal.h"
 #include "py32f002bxx_Start_Kit.h"
+#include <string.h>
+#include "math.h"
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "user_define.h"
+#include "user_struct.h"
+
 #include "1002.h"
 #include "usart.h"
 #include "adjust.h"
@@ -12,18 +21,22 @@
 #include "iwdg.h"
 #include "flash.h"
 #include "arithmetic.h"
-#include <string.h>
-#include "math.h"
-#include <stdlib.h>
+
 #include "sys.h"
 #include "app_usart.h"
-#include "user_define.h"
+
 #include "voice_app.h"
 #include "baseline_tracking.h"
 #include "user_define.h"
-#include <stdbool.h>
+
 #include "sc7a20.h"
 #include "1002.h"
+#include "sleep.h"
+#include "mh1612s.h"
+#include "py32f002b_hal_spi.h"
+#include "picc.h"
+#include "card_emu.h"
+
 
 #define DEFAULE_I2C_ADDR_0  (0x2B) /* 锐盟地址 */
 #define DEFAULE_I2C_ADDR_1  (0x2A) 
@@ -50,5 +63,6 @@ extern float cxxx1[4];                     // RM1寄生电容值
 extern float cxxx2[4];                     // RM2寄生电容值
 extern float cxxx3[4];                     // RM3寄生电容值
 
+extern uint32_t exti_triggered_ts;
 
 #endif /* __MAIN_H */

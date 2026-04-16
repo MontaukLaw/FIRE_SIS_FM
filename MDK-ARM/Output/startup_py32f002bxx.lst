@@ -296,13 +296,13 @@ ARM Macro Assembler    Page 5
   218 00000014                 END
               00000000 
               00000000 
-Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M0+ --dep
-end=.\output\startup_py32f002bxx.d -o.\output\startup_py32f002bxx.o -I.\RTE\_Pr
-oject -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\6.1.0\CMSIS\Core\Include -IC:\Keil_v5\ARM
-\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include -IC:\Keil_v
-5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Device\Include --predefine="__MICROLIB SETA 
-1" --predefine="__UVISION_VERSION SETA 541" --predefine="_RTE_ SETA 1" --list=.
-\output\startup_py32f002bxx.lst startup_py32f002bxx.s
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
+work --depend=.\output\startup_py32f002bxx.d -o.\output\startup_py32f002bxx.o -
+I.\RTE\_Project -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include -IC:\K
+eil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include -
+IC:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Device\Include --predefine="__MICR
+OLIB SETA 1" --predefine="__UVISION_VERSION SETA 541" --predefine="_RTE_ SETA 1
+" --list=.\output\startup_py32f002bxx.lst startup_py32f002bxx.s
 
 
 

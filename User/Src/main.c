@@ -5,7 +5,51 @@ float cxxx1[4] = {13.775604, 12.385233, 12.297818, 12.312315};
 float cxxx2[4] = {13.550714, 12.053483, 12.082601, 11.999557};
 float cxxx3[4] = {13.895423, 12.456123, 12.358680, 12.417278};
 
+uint32_t exti_triggered_ts = 0;
+/**
+ * @brief  External interrupt configuration function.
+ * @param  None
+ * @retval None
+ */
+static void APP_ExtiConfig(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE(); /* Enable GPIOA clock */
+
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;   /* 上升沿中断 */
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;         /* 下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; /* 高速 */
+    GPIO_InitStruct.Pin = G_SENSOR_INT_PIN;
+    HAL_GPIO_Init(G_SENSOR_INT_PORT, &GPIO_InitStruct);
+
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);         /* Enable EXTI interrupt */
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0); /* Configure interrupt priority */
+}
+
+// for WFI test
 int main(void)
+{
+
+    APP_Config();
+
+    init_gsensor_for_interrupt();
+
+    // 设置外部中断
+    APP_ExtiConfig();
+
+    mh1612s_init();
+
+    picc_init();
+
+    while (1)
+    {
+        sleep_check_task();
+        // printf("Sys running\r\n");
+    }
+}
+
+int main_(void)
 {
     static uint16_t test_counter = 0;
 
@@ -81,5 +125,18 @@ int main(void)
         // read_rmof_addres3();
         // print_1002_data();
         HAL_Delay(3000);
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == G_SENSOR_INT_PIN)
+    {
+        printf("INT triggered\r\n");
+        exti_triggered_ts = HAL_GetTick();
+    }
+    else if (GPIO_Pin == NFC_INT_PIN)
+    {
+        printf("NFC INT triggered\r\n");
     }
 }

@@ -1,32 +1,63 @@
-./output/voice_app.o: ..\User\Src\voice_app.c ..\User\Inc\user_define.h \
-  ..\HAL_Driver\Inc\py32f0xx_hal.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_conf.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_def.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h \
-  C:\Keil_v5\ARM\PACK\ARM\CMSIS\6.1.0\CMSIS\Core\Include\core_cm0plus.h \
-  C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_cortex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_adc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_crc.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_comp.h \
-  ..\HAL_Driver\Inc\py32f002b_ll_exti.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_flash.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_i2c.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_pwr.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_lptim.h \
-  ..\HAL_Driver\Inc\py32f002b_hal_uart.h ..\User\Inc\tim.h \
-  ..\User\Inc\main.h ..\HAL_Driver\Inc\py32f002bxx_Start_Kit.h \
-  ..\User\Inc\1002.h ..\User\Inc\usart.h ..\User\Inc\app_usart.h \
-  ..\User\Inc\adjust.h ..\User\Inc\led.h ..\User\Inc\iwdg.h \
-  ..\User\Inc\flash.h ..\User\Inc\arithmetic.h ..\User\Inc\sys.h \
-  ..\User\Inc\I2C.h ..\User\Inc\voice_app.h \
-  ..\User\Inc\baseline_tracking.h ..\User\Src\sc7a20.h
+.\output\voice_app.o: ..\User\Src\voice_app.c
+.\output\voice_app.o: ..\User\Inc\user_define.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_conf.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_def.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f002bx5.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\core_cm0plus.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_version.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_compiler.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include\cmsis_armcc.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\system_py32f0xx.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_rcc_ex.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_exti.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_gpio_ex.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_cortex.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_adc.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_crc.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_comp.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_ll_exti.h
+.\output\voice_app.o: C:\Keil_v5\ARM\PACK\Puya\PY32F0xx_DFP\1.2.2\Drivers\CMSIS\Device\PY32F0xx\Include\py32f0xx.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_flash.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_i2c.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_iwdg.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_pwr.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_spi.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_tim.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_tim_ex.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_lptim.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002b_hal_uart.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+.\output\voice_app.o: ..\User\Inc\tim.h
+.\output\voice_app.o: ..\User\Inc\main.h
+.\output\voice_app.o: ..\HAL_Driver\Inc\py32f002bxx_Start_Kit.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\output\voice_app.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\output\voice_app.o: ..\User\Inc\user_struct.h
+.\output\voice_app.o: ..\User\Inc\1002.h
+.\output\voice_app.o: ..\User\Inc\main.h
+.\output\voice_app.o: ..\User\Inc\usart.h
+.\output\voice_app.o: ..\User\Inc\app_usart.h
+.\output\voice_app.o: ..\User\Inc\usart.h
+.\output\voice_app.o: ..\User\Inc\adjust.h
+.\output\voice_app.o: ..\User\Inc\led.h
+.\output\voice_app.o: ..\User\Inc\tim.h
+.\output\voice_app.o: ..\User\Inc\iwdg.h
+.\output\voice_app.o: ..\User\Inc\flash.h
+.\output\voice_app.o: ..\User\Inc\arithmetic.h
+.\output\voice_app.o: ..\User\Inc\sys.h
+.\output\voice_app.o: ..\User\Inc\I2C.h
+.\output\voice_app.o: ..\User\Inc\voice_app.h
+.\output\voice_app.o: ..\User\Inc\baseline_tracking.h
+.\output\voice_app.o: ..\User\Src\sc7a20.h
+.\output\voice_app.o: ..\User\Inc\sleep.h
+.\output\voice_app.o: ..\User\Inc\mh1612s.h
+.\output\voice_app.o: ..\User\Inc\picc.h
+.\output\voice_app.o: ..\User\Inc\card_emu.h
