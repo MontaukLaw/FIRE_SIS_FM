@@ -12,13 +12,12 @@ void APP_Config(void)
 
     APP_TimConfig();     // 定时器初始化
     USART1_Init(115200); // 初始化串口
-    
+
     /* I2C initialization */
     I2C_Init();
-    
+
     RM_Init();    // 锐盟初始化
     Flash_Init(); // Flash初始化
-    
 }
 
 /**
@@ -106,3 +105,48 @@ float low_filter_op(float pre_val, float new_val, float *data_ptr, float alpha)
     return val;
 }
 
+/*****************************************************************************
+ * Name		: is_timeout
+ * Function	: Determine whether the timeout that millisecond.
+ * ---------------------------------------------------------------------------
+ * Input Parameters:
+ *			start_time	start time
+ *			interval		time interval
+ * Output Parameters:None
+ * Return Value:
+ *			TRUE		timeout
+ *			FALSE		It is not timeout
+ * ---------------------------------------------------------------------------
+ * Description:
+ *
+ *****************************************************************************/
+int is_timeout(tick start_time, tick interval)
+{
+    return (get_diff_tick(get_tick(), start_time) >= interval);
+}
+
+/*****************************************************************************
+ * Name		: get_diff_tick
+ * Function	: Get the time interval (unit is 1ms) for two tick.
+ * ---------------------------------------------------------------------------
+ * Input Parameters:
+ *			cur_tick		lastest tick
+ *			prior_tick		prior tick
+ * Output Parameters:None
+ * Return Value:
+ *			Return the ticks of two tick difference.
+ * ---------------------------------------------------------------------------
+ * Description:
+ *
+ *****************************************************************************/
+tick get_diff_tick(tick cur_tick, tick prior_tick)
+{
+    if (cur_tick < prior_tick)
+    {
+        return (cur_tick + (~prior_tick));
+    }
+    else
+    {
+        return (cur_tick - prior_tick);
+    }
+}

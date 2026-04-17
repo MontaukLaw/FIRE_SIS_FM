@@ -145,18 +145,18 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
     printf("Uart Error, ErrorCode = %d\r\n", huart->ErrorCode);
 }
 
-__IO uint8_t tx_buf[64] = {0};
+__IO static uint8_t tx_buf[64] = {0};
 void uart_send_data(float *data)
 {
 
     // 仅仅复制4个点的数据
-    memcpy(tx_buf, (uint8_t *)data, sizeof(float) * 4);
+    memcpy((uint8_t *)tx_buf, (uint8_t *)data, sizeof(float) * 4);
 
     tx_buf[16] = 0x0d; // \r
     tx_buf[17] = 0x0a; // \n
 
     // 发送数据到U0 DMA
-    USART1_Send_Bytes(tx_buf, 18);
+    USART1_Send_Bytes((uint8_t *)tx_buf, 18);
 }
 
 void uart_send_multi_data(void)
@@ -164,34 +164,34 @@ void uart_send_multi_data(void)
     float result = result_data[0];
 
     // 第一步, 复制通道1最终数据
-    memcpy(tx_buf, (uint8_t *)&result, sizeof(float));
+    memcpy((uint8_t *)tx_buf, (uint8_t *)&result, sizeof(float));
 
     // 第二步, 复制通道1基线值
-    memcpy(tx_buf + 4, (uint8_t *)&g.base_line[0], sizeof(float));
+    memcpy((uint8_t *)tx_buf + 4, (uint8_t *)&g.base_line[0], sizeof(float));
 
     // 第三步, 复制通道1噪声值
     float diff = g.base_noise[0] * K_TH_F;
-    memcpy(tx_buf + 8, (uint8_t *)&diff, sizeof(float));
+    memcpy((uint8_t *)tx_buf + 8, (uint8_t *)&diff, sizeof(float));
 
     // 第四步, 复制通道1采样值
-    memcpy(tx_buf + 12, (uint8_t *)&c_real_time_value[0], sizeof(float));
+    memcpy((uint8_t *)tx_buf + 12, (uint8_t *)&c_real_time_value[0], sizeof(float));
 
     // float if_over_th = (float)g.over_th[0];
     // memcpy(tx_buf + 16, (uint8_t *)&if_over_th, sizeof(float));
     float status = (float)c0_wave_detector.state;
-    memcpy(tx_buf + 16, (uint8_t *)&status, sizeof(float));
+    memcpy((uint8_t *)tx_buf + 16, (uint8_t *)&status, sizeof(float));
 
     tx_buf[20] = 0x0d; // \r
     tx_buf[21] = 0x0a; // \n
 
     // 发送数据到U0 DMA
-    USART1_Send_Bytes(tx_buf, 22);
+    USART1_Send_Bytes((uint8_t *)tx_buf, 22);
 }
 
 void uart_send_float_data(float data)
 {
-    memcpy(tx_buf, (uint8_t *)&data, sizeof(float));
+    memcpy((uint8_t *)tx_buf, (uint8_t *)&data, sizeof(float));
     tx_buf[4] = 0x0d; // \r
     tx_buf[5] = 0x0a; // \n
-    USART1_Send_Bytes(tx_buf, 6);
+    USART1_Send_Bytes((uint8_t *)tx_buf, 6);
 }

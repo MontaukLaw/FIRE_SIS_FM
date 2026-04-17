@@ -61,3 +61,13 @@
 .\output\i2c.o: ..\User\Inc\mh1612s.h
 .\output\i2c.o: ..\User\Inc\picc.h
 .\output\i2c.o: ..\User\Inc\card_emu.h
+.\output\i2c.o: ..\User\Inc\nfc_app.h
+.\output\i2c.o: ..\User\Inc\nfc_config.h
+.\output\i2c.o: ..\User\Inc\rfid.h
+.\output\i2c.o: ..\User\Inc\mifare.h
+.\output\i2c.o: ..\User\Inc\nfc_transfer.h
+.\output\i2c.o: ..\User\Inc\nfc_debug.h
+.\output\i2c.o: ..\User\Inc\iso14443a.h
+.\output\i2c.o: ..\User\Inc\iso14443b.h
+.\output\i2c.o: ..\User\Inc\intc.h
+.\output\i2c.o: ..\User\Inc\user_refine.h

@@ -61,3 +61,13 @@
 .\output\1002.o: ..\User\Inc\mh1612s.h
 .\output\1002.o: ..\User\Inc\picc.h
 .\output\1002.o: ..\User\Inc\card_emu.h
+.\output\1002.o: ..\User\Inc\nfc_app.h
+.\output\1002.o: ..\User\Inc\nfc_config.h
+.\output\1002.o: ..\User\Inc\rfid.h
+.\output\1002.o: ..\User\Inc\mifare.h
+.\output\1002.o: ..\User\Inc\nfc_transfer.h
+.\output\1002.o: ..\User\Inc\nfc_debug.h
+.\output\1002.o: ..\User\Inc\iso14443a.h
+.\output\1002.o: ..\User\Inc\iso14443b.h
+.\output\1002.o: ..\User\Inc\intc.h
+.\output\1002.o: ..\User\Inc\user_refine.h

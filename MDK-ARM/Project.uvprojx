@@ -338,7 +338,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--diag_suppress=177,550</MiscControls>
               <Define>USE_HAL_DRIVER,PY32F002Bx5</Define>
               <Undefine></Undefine>
               <IncludePath>..\Src;..\HAL_Driver\Src;..\HAL_Driver\Inc;..\User\Src;..\User\Inc</IncludePath>
@@ -576,9 +576,9 @@
               <FilePath>..\User\Src\mh1612s.c</FilePath>
             </File>
             <File>
-              <FileName>nfc_config.c</FileName>
+              <FileName>rfid.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Src\nfc_config.c</FilePath>
+              <FilePath>..\User\Src\rfid.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -654,6 +654,41 @@
               <FileName>picc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\protocol\picc.c</FilePath>
+            </File>
+            <File>
+              <FileName>iso14443a.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\protocol\iso14443a.c</FilePath>
+            </File>
+            <File>
+              <FileName>iso14443b.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\protocol\iso14443b.c</FilePath>
+            </File>
+            <File>
+              <FileName>intc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\protocol\intc.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>NFC</GroupName>
+          <Files>
+            <File>
+              <FileName>nfc_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\nfc\nfc_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>nfc_config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\nfc\nfc_config.c</FilePath>
+            </File>
+            <File>
+              <FileName>nfc_transfer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\nfc\nfc_transfer.c</FilePath>
             </File>
           </Files>
         </Group>

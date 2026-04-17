@@ -176,7 +176,7 @@ HAL_StatusTypeDef nfc_read_reg(uint8_t addr, uint8_t *value)
 }
 
 /* 读卡器复位 */
-static inline void hal_nfc_pcd_reset(void)
+void hal_nfc_pcd_reset(void)
 {
     nfc_write_reg(REG_COMMAND, PCD_RESETPHASE);
 }

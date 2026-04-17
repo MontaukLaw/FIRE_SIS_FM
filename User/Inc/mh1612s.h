@@ -23,5 +23,7 @@ uint8_t nfc_get_reg(uint8_t page, uint8_t addr, uint8_t page_sel);
 
 HAL_StatusTypeDef nfc_write_reg(uint8_t addr, const uint8_t value);
 
+void hal_nfc_pcd_reset(void);
+
 
 #endif // _MH1612S_H_

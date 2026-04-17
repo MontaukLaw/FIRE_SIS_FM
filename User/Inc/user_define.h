@@ -274,4 +274,26 @@
 
 #define G_THRESHOLD 250.0f
 
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
+
+#define UID_4 4
+#define UID_7 7
+#define UID_10 10
+
+#define PICC_CID 0x00 // 0~14 随意指定
+
+#define SEND_DATA_NUM_MAX 100
+#define MAX_TRX_BUF_SIZE 64 // 255
+
+#define FSDI 8
+#define FIFO_SIZE 64
+#define COLLPOS 0x1F
+
+#define TP_FWT_302us 2048
+#define TP_dFWT 192
+
+
+
 #endif

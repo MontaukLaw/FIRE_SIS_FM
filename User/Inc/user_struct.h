@@ -10,12 +10,15 @@ typedef enum
     ST_ENDING
 } TouchState;
 
-typedef enum
+typedef uint8_t wave_state_t;
+typedef void (*process_handle)(uint32_t event);
+
+enum
 {
     WAVE_IDLE = 0,
     WAVE_ACTIVE,
     WAVE_REFRACTORY
-} wave_state_t;
+};
 
 typedef enum
 {
@@ -28,6 +31,22 @@ typedef enum
     PICC_TxIEn = 0x40,
     PICC_IRQInv = 0x80,
 } ComIEnReg;
+
+typedef struct tag_info
+{
+    u8 uncoded_key_is_a : 1;
+    u8 opt_step;
+    u8 uid_length;
+    u8 tag_type;
+    u8 tag_type_bytes[2];
+    u8 serial_num[8];
+    u8 uncoded_key[6];
+    struct block
+    {
+        u8 num;
+        u8 block_data[16];
+    } block;
+} tag_info;
 
 typedef enum
 {
@@ -60,6 +79,30 @@ typedef enum
     PICC_Set1 = 0x80,
 } ComIrqReg;
 
+enum
+{
+    PICC_MODE_DISABLE = 0,
+    PICC_MODE_ENABLE,
+};
+
+typedef enum
+{
+    HAL_TECH_TYPE_A,
+    HAL_TECH_TYPE_B,
+    HAL_TECH_TYPE_F,
+    HAL_TECH_TYPE_V,
+} hal_nfc_tech_type_t;
+
+enum
+{
+    STATE_READ_CARD = 0,
+    STATE_READER_EXCHANGTE_DATA,
+    STATE_PICC_INIT,
+    STATE_PICC,
+    STATE_CLEAR,
+    STATE_MAX_TOP,
+};
+
 typedef enum
 {
     TIMER_EVENT = 0,
@@ -88,9 +131,9 @@ struct picc_run_t
 {
     uint8_t en;
     picc_state_e state;
-    uint8_t rx_buf[256];
+    uint8_t rx_buf[64];
     uint16_t rx_len;
-    uint8_t tx_buf[256];
+    uint8_t tx_buf[64];
     uint16_t tx_len;
     uint8_t rate;
     tick time;
@@ -286,8 +329,8 @@ typedef struct
 {
     uint8_t file_count;
     file_entry *cur_file;
-    file_entry files[4];     // 文件系统（包含CC文件+NDEF文件+预留）
-    uint8_t ndef_data[128]; // NDEF数据存储区（含网页URI）
+    file_entry files[4];    // 文件系统（包含CC文件+NDEF文件+预留）
+    uint8_t ndef_data[64]; // NDEF数据存储区（含网页URI）
 } t4t_entity;
 
 #pragma pack(push, 1)
@@ -299,7 +342,7 @@ typedef struct
     uint8_t uri_len;    // 载荷长度
     uint8_t type;       // 'U'（URI类型）
     uint8_t uri_prefix; // URI前缀（0x01=http://www.）
-    char uri[128];      // 网页地址（最大128字节）
+    char uri[64];      // 网页地址（最大64字节）
 } ndef_uri_record;
 #pragma pack(pop)
 
@@ -350,5 +393,30 @@ typedef struct pps
     uint8_t pps0;
     uint8_t pps1;
 } pps_t;
+
+typedef struct
+{
+    unsigned char uc_nid;
+    unsigned char uc_nad_en;
+    unsigned char uc_cid;
+    unsigned char uc_cid_en;
+    unsigned int ui_fsc;
+    unsigned int ui_fwi;
+    unsigned int ui_sfgi;
+    unsigned char uc_pcd_pcb;
+    unsigned char uc_picc_pcb;
+    unsigned int uc_pcd_txr_num;
+    unsigned int uc_pcd_txr_lastbits;
+    unsigned char uc_wtxm;
+} pcd_info_s;
+
+typedef struct
+{
+    int8_t mf_command;
+    uint16_t mf_length;
+    uint8_t mf_data[MAX_TRX_BUF_SIZE];
+    uint8_t type;
+    uint8_t scene;
+} hal_nfc_transceive_t;
 
 #endif // _USER_STRUCT_H_

@@ -60,3 +60,13 @@
 .\output\sleep.o: ..\User\Inc\mh1612s.h
 .\output\sleep.o: ..\User\Inc\picc.h
 .\output\sleep.o: ..\User\Inc\card_emu.h
+.\output\sleep.o: ..\User\Inc\nfc_app.h
+.\output\sleep.o: ..\User\Inc\nfc_config.h
+.\output\sleep.o: ..\User\Inc\rfid.h
+.\output\sleep.o: ..\User\Inc\mifare.h
+.\output\sleep.o: ..\User\Inc\nfc_transfer.h
+.\output\sleep.o: ..\User\Inc\nfc_debug.h
+.\output\sleep.o: ..\User\Inc\iso14443a.h
+.\output\sleep.o: ..\User\Inc\iso14443b.h
+.\output\sleep.o: ..\User\Inc\intc.h
+.\output\sleep.o: ..\User\Inc\user_refine.h

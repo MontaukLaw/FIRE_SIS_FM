@@ -4,11 +4,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "py32f0xx_hal.h"
 #include "py32f002bxx_Start_Kit.h"
+
 #include <string.h>
 #include "math.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "user_define.h"
 #include "user_struct.h"
@@ -36,7 +38,16 @@
 #include "py32f002b_hal_spi.h"
 #include "picc.h"
 #include "card_emu.h"
-
+#include "nfc_app.h"
+#include "nfc_config.h"
+#include "rfid.h"
+#include "mifare.h"
+#include "nfc_transfer.h"
+#include "nfc_debug.h"
+#include "iso14443a.h"
+#include "iso14443b.h"
+#include "intc.h"
+#include "user_refine.h"
 
 #define DEFAULE_I2C_ADDR_0  (0x2B) /* 锐盟地址 */
 #define DEFAULE_I2C_ADDR_1  (0x2A) 

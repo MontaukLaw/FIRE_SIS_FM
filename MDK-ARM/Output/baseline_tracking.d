@@ -60,3 +60,13 @@
 .\output\baseline_tracking.o: ..\User\Inc\mh1612s.h
 .\output\baseline_tracking.o: ..\User\Inc\picc.h
 .\output\baseline_tracking.o: ..\User\Inc\card_emu.h
+.\output\baseline_tracking.o: ..\User\Inc\nfc_app.h
+.\output\baseline_tracking.o: ..\User\Inc\nfc_config.h
+.\output\baseline_tracking.o: ..\User\Inc\rfid.h
+.\output\baseline_tracking.o: ..\User\Inc\mifare.h
+.\output\baseline_tracking.o: ..\User\Inc\nfc_transfer.h
+.\output\baseline_tracking.o: ..\User\Inc\nfc_debug.h
+.\output\baseline_tracking.o: ..\User\Inc\iso14443a.h
+.\output\baseline_tracking.o: ..\User\Inc\iso14443b.h
+.\output\baseline_tracking.o: ..\User\Inc\intc.h
+.\output\baseline_tracking.o: ..\User\Inc\user_refine.h

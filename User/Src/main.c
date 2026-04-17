@@ -40,11 +40,13 @@ int main(void)
 
     mh1612s_init();
 
-    picc_init();
+    // picc_init();
 
     while (1)
     {
-        sleep_check_task();
+        nfc_app();
+        
+        // sleep_check_task();
         // printf("Sys running\r\n");
     }
 }
@@ -126,6 +128,7 @@ int main_(void)
         // print_1002_data();
         HAL_Delay(3000);
     }
+    return 0;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

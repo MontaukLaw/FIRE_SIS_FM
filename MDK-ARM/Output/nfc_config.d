@@ -1,4 +1,4 @@
-.\output\nfc_config.o: ..\User\Src\nfc_config.c
+.\output\nfc_config.o: ..\User\Src\nfc\nfc_config.c
 .\output\nfc_config.o: ..\User\Inc\main.h
 .\output\nfc_config.o: ..\HAL_Driver\Inc\py32f0xx_hal.h
 .\output\nfc_config.o: ..\HAL_Driver\Inc\py32f002b_hal_conf.h
@@ -60,3 +60,13 @@
 .\output\nfc_config.o: ..\User\Inc\mh1612s.h
 .\output\nfc_config.o: ..\User\Inc\picc.h
 .\output\nfc_config.o: ..\User\Inc\card_emu.h
+.\output\nfc_config.o: ..\User\Inc\nfc_app.h
+.\output\nfc_config.o: ..\User\Inc\nfc_config.h
+.\output\nfc_config.o: ..\User\Inc\rfid.h
+.\output\nfc_config.o: ..\User\Inc\mifare.h
+.\output\nfc_config.o: ..\User\Inc\nfc_transfer.h
+.\output\nfc_config.o: ..\User\Inc\nfc_debug.h
+.\output\nfc_config.o: ..\User\Inc\iso14443a.h
+.\output\nfc_config.o: ..\User\Inc\iso14443b.h
+.\output\nfc_config.o: ..\User\Inc\intc.h
+.\output\nfc_config.o: ..\User\Inc\user_refine.h

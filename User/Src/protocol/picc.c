@@ -4,6 +4,7 @@ struct picc_run_t picc_run = {
     .en = 1,
 };
 
+#if 0
 #define ZHI_FU_BAO
 uint8_t t2t_mem[][4] =
     {
@@ -480,6 +481,7 @@ uint8_t t2t_mem[][4] =
         {0x00, 0x00, 0x00, 0x00},
 #endif
 };
+#endif
 
 t4t_entity t4t_tag = {0};
 const uint16_t au16FSD_CODE[] = {16, 24, 32, 40, 48, 64, 96, 128, 256};
@@ -491,7 +493,48 @@ uint8_t t2t_ver[8] = {0x00, 0x04, 0x04, 0x02, 0x01, 0x00, 0x13, 0x03};
 
 static uint8_t picc_get_err(void)
 {
-	return nfc_get_reg(0, 0x06, 1);
+    return nfc_get_reg(0, 0x06, 1);
+}
+
+uint8_t data_test[64] = {0xbb, 0xbb, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                         5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                         0xdd, 0xdd}; //{0xbb,0xbb,1,1,1,1,1,1,0xdd,0xdd};
+
+uint8_t if_picc_state_active(void)
+{
+    return (picc_run.state >= PICC_STATE_ACTIVE);
+}
+
+void build_web_uri(t4t_entity *tag, const char *url)
+{
+
+    ndef_uri_record *record = (ndef_uri_record *)&tag->ndef_data[tag->file_count * sizeof(ndef_uri_record)];
+    record->header = 0xD1; // MB=1, ME=1, TNF=0x01
+    record->type_len = 1;
+    record->type = 'U';
+    record->uri_prefix = 0x01; // "http://www."
+
+    strncpy(record->uri, url, sizeof(record->uri));
+    record->uri_len = 1 + strlen(url); // 前缀+URL长度
+    record->ndef_len = (4 + (uint16_t)record->uri_len) >> 8 | (4 + (uint16_t)record->uri_len) << 8;
+}
+
+void init_t4t_entity(t4t_entity *tag)
+{
+    // 初始化CC文件
+    tag->files[0] = (file_entry){
+        .fid = 0xE103, .type = 2, .size = 15, .start_block = 0, .access_mode = 0x01};
+    // 预置CC文件内容（参考NFC Forum T4T规范）
+    uint8_t cc_data[] = {0x00, 0x0F, 0x20, 0x00, 0xFA, 0x00, 0xFA, 0x04, 0x06, 0xE1, 0x04, 0x7F, 0xFF, 0x00, 0x00};
+    memcpy(tag->ndef_data, cc_data, sizeof(cc_data));
+    tag->file_count++;
+
+    // 初始化NDEF文件
+    tag->files[1] = (file_entry){
+        .fid = 0xE104, .type = 2, .size = sizeof(ndef_uri_record), .start_block = 1, .access_mode = 0x03};
+    build_web_uri(tag, "megahuntmicro.com"); // 默认网址
+    tag->file_count++;
 }
 
 void picc_write(uint8_t *buf, uint16_t len)
@@ -528,6 +571,12 @@ void picc_t4t_send_r(block_prologue_field_t *p)
     picc_write(picc_run.tx_buf, picc_run.tx_len);
 
     picc_blk_num_set(p->PCB.val & BIT0);
+}
+
+void set_picc_init(void)
+{
+    picc_run.en = PICC_MODE_ENABLE;
+    picc_run.state = PICC_STATE_INIT;
 }
 
 void handle_read(t4t_entity *tag, c_apdu_t *cmd, r_apdu_t *resp)
@@ -799,6 +848,13 @@ uint8_t picc_blk_num_get(void)
     return picc_run.local_blk_num;
 }
 
+static void picc_t2t_nak(uint8_t err)
+{
+    nfc_set_bit(9, 0x39, 0x04, 1); // open halt byte send
+    picc_write(&err, 1);
+    nfc_clear_bit(9, 0x39, 0x04, 1); // close halt byte send
+}
+
 static void picc_t2t_process(void)
 {
     switch (picc_run.rx_buf[0])
@@ -807,7 +863,7 @@ static void picc_t2t_process(void)
         picc_set_halt();
         break;
     case 0x30:
-        picc_write(t2t_mem[picc_run.rx_buf[1]], 16);
+        // picc_write(t2t_mem[picc_run.rx_buf[1]], 16);
         break;
     case 0x60:
         picc_write(t2t_ver, 8);
@@ -816,13 +872,24 @@ static void picc_t2t_process(void)
         picc_write(t2t_ecc, 32);
         break;
     case 0x3A:
-        picc_write(t2t_mem[picc_run.rx_buf[1]], (picc_run.rx_buf[2] - picc_run.rx_buf[1] + 1) * 4);
+        // picc_write(t2t_mem[picc_run.rx_buf[1]], (picc_run.rx_buf[2] - picc_run.rx_buf[1] + 1) * 4);
         break;
     case 0x1b:
         picc_write("\x00\x00", 2);
         break;
+    case 0x02:
+        picc_t2t_nak(0);
+        break;
+    case 0x03:
+        picc_t2t_nak(1);
+        break;
+    case 0x6a:
+        picc_t2t_nak(4);
+        break;
+    case 0xb2:
+        picc_t2t_nak(5);
     case 0xA2:
-        memcpy(t2t_mem[picc_run.rx_buf[1]], &picc_run.rx_buf[2], 4);
+        // memcpy(t2t_mem[picc_run.rx_buf[1]], &picc_run.rx_buf[2], 4);
         picc_t2t_ack();
         break;
     default:
@@ -1118,7 +1185,7 @@ void picc_active_irq(uint8_t en)
     }
 }
 
-static void picc_set_idle(void)
+void picc_set_idle(void)
 {
     nfc_set_bit(8, 0x3e, 0x10, 1);
     picc_run_state(PICC_STATE_IDLE);
@@ -1129,7 +1196,7 @@ static uint16_t picc_get_rx_len(void)
     return nfc_get_reg(0, 0x0a, 1);
 }
 
-static void picc_err_callback(uint32_t event)
+void picc_err_callback(uint32_t event)
 {
     printf("err:%x\n", picc_get_err());
     picc_set_idle();
@@ -1163,16 +1230,118 @@ void picc_rx_callback(uint32_t event)
     }
 }
 
-void picc_rx_irq(uint8_t en)
+void picc_rx_irq(uint8_t en, process_handle cb)
 {
+    uint8_t i;
     if (en)
     {
-        picc_event_register(RX_EVENT, picc_rx_callback);
-        nfc_set_bit(0, 0x02, PICC_RxIEn, 1);
+        intc_irq_register(RX_EVENT, cb);
+        hal_nfc_bit_set(0, 0x02, PICC_RxIEn, 1);
     }
     else
     {
-        nfc_clear_bit(0, 0x02, PICC_RxIEn, 1);
-        picc_event_unregister(RX_EVENT);
+        hal_nfc_bit_clear(8, 0x02, PICC_RxIEn, 1);
+        intc_irq_unregister(RX_EVENT);
+    }
+}
+
+void picc_t2t_read_callback(uint32_t event)
+{
+
+    printf(" I am picc \r\n");
+    picc_run.rx_len = picc_get_rx_len();
+    if (picc_run.rx_len)
+    {
+        printf("PICC Recv data:%d\r\n", picc_run.rx_len);
+        for (int i = 0; i < picc_run.rx_len; i++)
+        {
+            picc_run.rx_buf[i] = hal_nfc_get_register(0, 0x09, 1);
+        }
+
+        if (picc_run.rx_buf[0] == 0xaa && picc_run.rx_buf[1] == 0xaa)
+        {
+            // for(int j = 0;j < 10;j++){
+            // printf("%02x ", picc_run.rx_buf[j]);}
+            // printf("\r\n");
+            hal_nfc_clear_register_bit(REG_TXMODE, BIT(7)); // 不使能发送crc
+            hal_nfc_clear_register_bit(REG_RXMODE, BIT(7)); // 不使能接收crc
+            picc_write(data_test, sizeof(data_test));
+        }
+        if (!(event & (1 << ERR_EVENT)))
+        {
+            // picc_t2t_process(picc_run.rx_buf);
+        }
+        else
+        {
+            picc_err_callback(event);
+            printf("picc_err_callback  \n");
+        }
+    }
+    else
+    {
+        picc_set_idle();
+    }
+}
+
+void picc_start(void)
+{
+    hal_nfc_bit_set(9, 0x3a, 1, 1);
+}
+
+void picc_stop(void)
+{
+    hal_nfc_bit_clear(9, 0x3a, 1, 1);
+}
+
+void picc_task(void)
+{
+    if (picc_run.en == PICC_MODE_ENABLE)
+    {
+        switch (picc_run.state)
+        {
+        case PICC_STATE_INIT:
+            //	  printf("picc_init\r\n");
+            picc_init();
+            picc_run.state = PICC_STATE_START;
+            break;
+        case PICC_STATE_STOP:
+            picc_stop();
+            //   printf("picc_stop\r\n");
+            // NVIC_DisableIRQ(EXIT_IRQ_NUM);
+            picc_run.state = PICC_STATE_IDLE;
+            break;
+        case PICC_STATE_START:
+            picc_start();
+            //    printf("picc_start\r\n");
+            // NVIC_EnableIRQ(EXIT_IRQ_NUM);
+            picc_run.state = PICC_STATE_IDLE;
+            // picc_14443_4_enable(picc_conf.enable_14443_4);
+            break;
+        case PICC_STATE_HALT:
+            break;
+        case PICC_STATE_IDLE:
+            // printf("PICC_STATE_IDLE\r\n");
+            break;
+        case PICC_STATE_ACTIVE:
+            if (picc_conf.enable_14443_4)
+            {
+                picc_run.state = PICC_STATE_RATS;
+            }
+            else
+            {
+                printf(" PICC_STATE_T2T\r\n");
+                picc_run.state = PICC_STATE_T2T;
+            }
+            printf(" picc_rx_irq\r\n");
+            picc_rx_irq(1, picc_t2t_read_callback);
+            break;
+        case PICC_STATE_T2T:
+        case PICC_STATE_RATS:
+            break;
+        case PICC_STATE_RECV_BLOCK:
+            break;
+        default:
+            break;
+        }
     }
 }

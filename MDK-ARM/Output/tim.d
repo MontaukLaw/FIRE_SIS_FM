@@ -61,3 +61,13 @@
 .\output\tim.o: ..\User\Inc\mh1612s.h
 .\output\tim.o: ..\User\Inc\picc.h
 .\output\tim.o: ..\User\Inc\card_emu.h
+.\output\tim.o: ..\User\Inc\nfc_app.h
+.\output\tim.o: ..\User\Inc\nfc_config.h
+.\output\tim.o: ..\User\Inc\rfid.h
+.\output\tim.o: ..\User\Inc\mifare.h
+.\output\tim.o: ..\User\Inc\nfc_transfer.h
+.\output\tim.o: ..\User\Inc\nfc_debug.h
+.\output\tim.o: ..\User\Inc\iso14443a.h
+.\output\tim.o: ..\User\Inc\iso14443b.h
+.\output\tim.o: ..\User\Inc\intc.h
+.\output\tim.o: ..\User\Inc\user_refine.h

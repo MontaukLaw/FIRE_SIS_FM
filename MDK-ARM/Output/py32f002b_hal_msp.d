@@ -60,3 +60,13 @@
 .\output\py32f002b_hal_msp.o: ..\User\Inc\mh1612s.h
 .\output\py32f002b_hal_msp.o: ..\User\Inc\picc.h
 .\output\py32f002b_hal_msp.o: ..\User\Inc\card_emu.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\nfc_app.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\nfc_config.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\rfid.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\mifare.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\nfc_transfer.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\nfc_debug.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\iso14443a.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\iso14443b.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\intc.h
+.\output\py32f002b_hal_msp.o: ..\User\Inc\user_refine.h

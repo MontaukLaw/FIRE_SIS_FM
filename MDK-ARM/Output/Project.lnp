@@ -35,9 +35,15 @@
 ".\output\sc7a20.o"
 ".\output\sleep.o"
 ".\output\mh1612s.o"
-".\output\nfc_config.o"
+".\output\rfid.o"
 ".\output\card_emu.o"
 ".\output\picc.o"
+".\output\iso14443a.o"
+".\output\iso14443b.o"
+".\output\intc.o"
+".\output\nfc_app.o"
+".\output\nfc_config.o"
+".\output\nfc_transfer.o"
 --library_type=microlib --strict --scatter ".\Output\Project.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

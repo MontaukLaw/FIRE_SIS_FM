@@ -61,3 +61,13 @@
 .\output\voice_app.o: ..\User\Inc\mh1612s.h
 .\output\voice_app.o: ..\User\Inc\picc.h
 .\output\voice_app.o: ..\User\Inc\card_emu.h
+.\output\voice_app.o: ..\User\Inc\nfc_app.h
+.\output\voice_app.o: ..\User\Inc\nfc_config.h
+.\output\voice_app.o: ..\User\Inc\rfid.h
+.\output\voice_app.o: ..\User\Inc\mifare.h
+.\output\voice_app.o: ..\User\Inc\nfc_transfer.h
+.\output\voice_app.o: ..\User\Inc\nfc_debug.h
+.\output\voice_app.o: ..\User\Inc\iso14443a.h
+.\output\voice_app.o: ..\User\Inc\iso14443b.h
+.\output\voice_app.o: ..\User\Inc\intc.h
+.\output\voice_app.o: ..\User\Inc\user_refine.h

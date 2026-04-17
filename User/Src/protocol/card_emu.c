@@ -32,37 +32,6 @@ struct picc_config_t picc_conf = {
     },
 };
 
-void build_web_uri(t4t_entity *tag, const char *url)
-{
-
-    ndef_uri_record *record = (ndef_uri_record *)&tag->ndef_data[tag->file_count * sizeof(ndef_uri_record)];
-    record->header = 0xD1; // MB=1, ME=1, TNF=0x01
-    record->type_len = 1;
-    record->type = 'U';
-    record->uri_prefix = 0x01; // "http://www."
-
-    strncpy(record->uri, url, sizeof(record->uri));
-    record->uri_len = 1 + strlen(url); // 前缀+URL长度
-    record->ndef_len = (4 + (uint16_t)record->uri_len) >> 8 | (4 + (uint16_t)record->uri_len) << 8;
-}
-
-void init_t4t_entity(t4t_entity *tag)
-{
-    // 初始化CC文件
-    tag->files[0] = (file_entry){
-        .fid = 0xE103, .type = 2, .size = 15, .start_block = 0, .access_mode = 0x01};
-    // 预置CC文件内容（参考NFC Forum T4T规范）
-    uint8_t cc_data[] = {0x00, 0x0F, 0x20, 0x00, 0xFA, 0x00, 0xFA, 0x04, 0x06, 0xE1, 0x04, 0x7F, 0xFF, 0x00, 0x00};
-    memcpy(tag->ndef_data, cc_data, sizeof(cc_data));
-    tag->file_count++;
-
-    // 初始化NDEF文件
-    tag->files[1] = (file_entry){
-        .fid = 0xE104, .type = 2, .size = sizeof(ndef_uri_record), .start_block = 1, .access_mode = 0x03};
-    build_web_uri(tag, "megahuntmicro.com"); // 默认网址
-    tag->file_count++;
-}
-
 void picc_init(void)
 {
     // 把 PICC 相关状态机、寄存器、FIFO 或上下文恢复到初始状态。
@@ -71,7 +40,6 @@ void picc_init(void)
     // 加载一套 PICC 专用寄存器配置表。
     nfc_config(picc_configs, sizeof(picc_configs) / sizeof(hal_nfc_regval_t));
 
-
     // 设置卡 UID
     picc_uid_set(picc_conf.uid, picc_conf.coll_level == 2 ? 7 : 4);
 
@@ -79,7 +47,7 @@ void picc_init(void)
     // 这就是在配置“我这张卡要怎么回应 REQA / WUPA”。
     picc_set_atqa_hbyte(picc_conf.atqa >> 8);
     picc_set_atqa_lbyte(picc_conf.atqa & 0x1F);
-    
+
     // 决定要不要支持 ISO14443-4。
     picc_14443_4_enable(picc_conf.enable_14443_4);
 
@@ -88,5 +56,6 @@ void picc_init(void)
 
     picc_active_irq(1);
 
-    picc_rx_irq(1);
+    // picc_rx_irq(1);
 }
+

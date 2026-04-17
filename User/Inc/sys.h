@@ -20,4 +20,8 @@ float float_asb_diff(float a, float b);
 
 float low_filter_op(float pre_val, float new_val, float *data_ptr, float alpha);
 
+int is_timeout(tick start_time, tick interval);
+
+tick get_diff_tick(tick cur_tick, tick prior_tick);
+
 #endif

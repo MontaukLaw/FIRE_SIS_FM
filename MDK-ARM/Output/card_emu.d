@@ -60,3 +60,13 @@
 .\output\card_emu.o: ..\User\Inc\mh1612s.h
 .\output\card_emu.o: ..\User\Inc\picc.h
 .\output\card_emu.o: ..\User\Inc\card_emu.h
+.\output\card_emu.o: ..\User\Inc\nfc_app.h
+.\output\card_emu.o: ..\User\Inc\nfc_config.h
+.\output\card_emu.o: ..\User\Inc\rfid.h
+.\output\card_emu.o: ..\User\Inc\mifare.h
+.\output\card_emu.o: ..\User\Inc\nfc_transfer.h
+.\output\card_emu.o: ..\User\Inc\nfc_debug.h
+.\output\card_emu.o: ..\User\Inc\iso14443a.h
+.\output\card_emu.o: ..\User\Inc\iso14443b.h
+.\output\card_emu.o: ..\User\Inc\intc.h
+.\output\card_emu.o: ..\User\Inc\user_refine.h

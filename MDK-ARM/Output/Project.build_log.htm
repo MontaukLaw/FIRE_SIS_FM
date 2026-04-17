@@ -22,118 +22,15 @@ Dialog DLL:      TARMCM1.DLL V1.14.6.0
  
 <h2>Project:</h2>
 D:\work\FIRE_SIS\FIRE_SIS_FM\MDK-ARM\Project.uvprojx
-Project File Date:  04/16/2026
+Project File Date:  04/17/2026
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Project'
-compiling adjust.c...
-compiling py32f002b_it.c...
-compiling main.c...
-..\User\Src\main.c(81): warning:  #128-D: loop is not reachable
-      while (1)
-..\User\Src\main.c(88): warning:  #128-D: loop is not reachable
-      while (1)
-..\User\Src\main.c(106): warning:  #128-D: loop is not reachable
-      while (0)
-..\User\Src\main.c(129): warning:  #940-D: missing return statement at end of non-void function "main_" 
-  }
-..\User\Src\main.c: 4 warnings, 0 errors
-compiling py32f002b_hal_msp.c...
-compiling I2C.c...
-compiling 1002.c...
-..\User\Src\1002.c(239): warning:  #550-D: variable "cali_start_time_ts"  was set but never used
-      uint32_t cali_start_time_ts = 0; // 校准开始时�?
-..\User\Src\1002.c(359): warning:  #550-D: variable "c_stay_init"  was set but never used
-      float c_stay_init[4] = {0.0, 0.0, 0.0, 0.0}; // 1002测出总电容值仅供观察使�?
-..\User\Src\1002.c: 2 warnings, 0 errors
-compiling baseline_tracking.c...
-..\User\Src\baseline_tracking.c(10): warning:  #188-D: enumerated type mixed with another type
-  wave_detector_t c0_wave_detector = {0};
-..\User\Src\baseline_tracking.c(34): warning:  #177-D: variable "sum_idx_amp"  was declared but never referenced
-      float S_amp = 0, sum_idx_amp = 0;
-..\User\Src\baseline_tracking.c(36): warning:  #177-D: variable "S_w"  was declared but never referenced
-      float S_w = 0, sum_idx_w = 0;
-..\User\Src\baseline_tracking.c(36): warning:  #177-D: variable "sum_idx_w"  was declared but never referenced
-      float S_w = 0, sum_idx_w = 0;
-..\User\Src\baseline_tracking.c(37): warning:  #177-D: variable "S_norm_q8"  was declared but never referenced
-      uint32_t S_norm_q8 = 0;
-..\User\Src\baseline_tracking.c(43): warning:  #550-D: variable "th_off"  was set but never used
-      float th_off = 0.0f;
-..\User\Src\baseline_tracking.c: 6 warnings, 0 errors
-compiling sys.c...
-compiling nfc_config.c...
-compiling sleep.c...
-compiling app_usart.c...
-compiling mh1612s.c...
-compiling usart.c...
-..\User\Src\usart.c(153): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf, (uint8_t *)data, sizeof(float) * 4);
-..\User\Src\usart.c(159): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "uint8_t *"
-      USART1_Send_Bytes(tx_buf, 18);
-..\User\Src\usart.c(167): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf, (uint8_t *)&result, sizeof(float));
-..\User\Src\usart.c(170): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf + 4, (uint8_t *)&g.base_line[0], sizeof(float));
-..\User\Src\usart.c(174): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf + 8, (uint8_t *)&diff, sizeof(float));
-..\User\Src\usart.c(177): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf + 12, (uint8_t *)&c_real_time_value[0], sizeof(float));
-..\User\Src\usart.c(182): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf + 16, (uint8_t *)&status, sizeof(float));
-..\User\Src\usart.c(188): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "uint8_t *"
-      USART1_Send_Bytes(tx_buf, 22);
-..\User\Src\usart.c(193): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "void *restrict"
-      memcpy(tx_buf, (uint8_t *)&data, sizeof(float));
-..\User\Src\usart.c(196): warning:  #167-D: argument of type "volatile uint8_t *" is incompatible with parameter of type "uint8_t *"
-      USART1_Send_Bytes(tx_buf, 6);
-..\User\Src\usart.c(197): warning:  #1-D: last line of file ends without a newline
-  }
-..\User\Src\usart.c: 11 warnings, 0 errors
-compiling tim.c...
-compiling card_emu.c...
-..\User\Src\protocol\card_emu.c(72): warning:  #223-D: function "nfc_config" declared implicitly
-      nfc_config(picc_configs, sizeof(picc_configs) / sizeof(hal_nfc_regval_t));
-..\User\Src\protocol\card_emu.c: 1 warning, 0 errors
-compiling voice_app.c...
-..\User\Src\voice_app.c(126): warning:  #550-D: variable "last_run_ts"  was set but never used
-      static uint32_t last_run_ts = 0;
-..\User\Src\voice_app.c: 1 warning, 0 errors
-compiling picc.c...
-..\User\Src\protocol\picc.c(677): warning:  #223-D: function "pcd_set_rate" declared implicitly
-      pcd_set_rate('1', 'A');
-..\User\Src\protocol\picc.c(959): warning:  #223-D: function "pcd_set_rate" declared implicitly
-          pcd_set_rate('1', 'A');
-..\User\Src\protocol\picc.c(1021): warning:  #223-D: function "init_t4t_entity" declared implicitly
-          init_t4t_entity(&t4t_tag);
-..\User\Src\protocol\picc.c: 3 warnings, 0 errors
-compiling flash.c...
 linking...
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching card_emu.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching flash.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching mh1612s.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching flash.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching i2c.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching tim.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching py32f002b_hal_flash.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching main.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching main.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching main.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching main.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching py32f002b_hal.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching iwdg.o(.bss).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching main.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching usart.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching system_py32f002b.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching sleep.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching stdout.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching tim.o(.data).
-.\Output\Project.axf: Error: L6406E: No space in execution regions with .ANY selector matching tim.o(.data).
-.\Output\Project.axf: Error: L6407E: Sections of aggregate size 0x22c bytes could not fit into .ANY selector(s).
-Not enough information to list image symbols.
-Not enough information to list load addresses in the image map.
-Finished: 2 information, 0 warning and 21 error messages.
-".\Output\Project.axf" - 21 Error(s), 28 Warning(s).
+.\Output\Project.axf: Error: L6220E: Load region LR_IROM1 size (25000 bytes) exceeds limit (24576 bytes). Region contains 40 bytes of padding and 0 bytes of veneers (total 40 bytes of linker generated content).
+Finished: 0 information, 0 warning and 1 error messages.
+".\Output\Project.axf" - 1 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
 
