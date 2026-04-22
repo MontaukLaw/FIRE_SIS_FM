@@ -551,11 +551,6 @@
               <FilePath>..\User\Src\app_usart.c</FilePath>
             </File>
             <File>
-              <FileName>voice_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Src\voice_app.c</FilePath>
-            </File>
-            <File>
               <FileName>baseline_tracking.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\baseline_tracking.c</FilePath>
@@ -661,11 +656,6 @@
               <FilePath>..\User\Src\protocol\iso14443a.c</FilePath>
             </File>
             <File>
-              <FileName>iso14443b.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Src\protocol\iso14443b.c</FilePath>
-            </File>
-            <File>
               <FileName>intc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\protocol\intc.c</FilePath>
@@ -689,6 +679,16 @@
               <FileName>nfc_transfer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\nfc\nfc_transfer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>CLIP_PLAYER</GroupName>
+          <Files>
+            <File>
+              <FileName>voice_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\clip_player\voice_app.c</FilePath>
             </File>
           </Files>
         </Group>

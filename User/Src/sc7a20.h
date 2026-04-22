@@ -8,5 +8,7 @@ void sc7a20_init(void);
 void init_gsensor_for_interrupt(void);
 
 extern int16_t sc7a20_acc_data[];
+extern int16_t sc7a20_delta_axes[3];
+extern float sc7a20_motion_delta;
 
 #endif

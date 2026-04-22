@@ -9,4 +9,8 @@ void play_voice_base_wave_detector(wave_detector_t wd);
 
 void play_voice_base_g(float combin_acc);
 
-#endif 
+void shake_and_play_task(void);
+
+extern uint8_t shaked;
+
+#endif

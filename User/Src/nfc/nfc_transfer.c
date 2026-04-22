@@ -4,6 +4,26 @@ pcd_info_s g_pcd_module_info = {0};
 
 uint8_t NFC_DEBUG_LOG = 0;
 uint8_t EMV_DEBUG_LOG = 0;
+uint8_t pcd_last_wait = 0;
+uint8_t pcd_last_irq = 0;
+uint8_t pcd_last_err = 0;
+
+#define NFC_IRQ_WAIT_TIMEOUT_MS 30U
+
+static uint8_t wait_nfc_int_high(uint32_t timeout_ms)
+{
+    tick start = get_tick();
+
+    while (HAL_GPIO_ReadPin(NFC_INT_PORT, NFC_INT_PIN) == 0)
+    {
+        if (is_timeout(start, timeout_ms))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
 
 void pcd_default_info(void) // COS_TEST
 {
@@ -45,6 +65,9 @@ int pcd_com_transceive(hal_nfc_transceive_t *pi)
     recebyte = 0;
     irq_en = 0;
     wait_for = 0;
+    pcd_last_wait = 0;
+    pcd_last_irq = 0;
+    pcd_last_err = 0;
 
     switch (pi->mf_command)
     {
@@ -147,8 +170,12 @@ int pcd_com_transceive(hal_nfc_transceive_t *pi)
 
             while (len_rest != 0)
             {
-                while (HAL_GPIO_ReadPin(G_SENSOR_INT_PORT, G_SENSOR_INT_PIN) == 0)
-                    ; // Wait LoAlertIRq
+                if (!wait_nfc_int_high(NFC_IRQ_WAIT_TIMEOUT_MS))
+                {
+                    pcd_last_wait = 'L';
+                    nfc_write_reg(REG_COMMAND, PCD_IDLE);
+                    return HAL_STATUS_TIMEOUT;
+                }
 
                 if (len_rest > (FIFO_SIZE - WATER_LEVEL))
                 {
@@ -174,11 +201,15 @@ int pcd_com_transceive(hal_nfc_transceive_t *pi)
                 }
             }
             // Wait TxIRq
-            while (HAL_GPIO_ReadPin(G_SENSOR_INT_PORT, G_SENSOR_INT_PIN) == 0)
+            if (!wait_nfc_int_high(NFC_IRQ_WAIT_TIMEOUT_MS))
             {
+                pcd_last_wait = 'T';
+                nfc_write_reg(REG_COMMAND, PCD_IDLE);
+                return HAL_STATUS_TIMEOUT;
             }
 
             nfc_read_reg(REG_COMIRQ, &tmp);
+            pcd_last_irq = tmp;
             if (tmp & TX_IRQ)
             {
                 nfc_write_reg(REG_COMIRQ, TX_IRQ);
@@ -204,14 +235,22 @@ int pcd_com_transceive(hal_nfc_transceive_t *pi)
         {
             while (status != HAL_STATUS_TIMEOUT)
             {
-                while (HAL_GPIO_ReadPin(G_SENSOR_INT_PORT, G_SENSOR_INT_PIN) == 0)
+                if (!wait_nfc_int_high(NFC_IRQ_WAIT_TIMEOUT_MS))
                 {
+                    pcd_last_wait = 'R';
+                    status = HAL_STATUS_TIMEOUT;
+                    break;
                 }
                 while (1)
                 {
-                    while (HAL_GPIO_ReadPin(G_SENSOR_INT_PORT, G_SENSOR_INT_PIN) == 0)
-                        ;
+                    if (!wait_nfc_int_high(NFC_IRQ_WAIT_TIMEOUT_MS))
+                    {
+                        pcd_last_wait = 'r';
+                        status = HAL_STATUS_TIMEOUT;
+                        break;
+                    }
                     nfc_read_reg(REG_COMIRQ, &val);
+                    pcd_last_irq = val;
 
                     if ((val & BIT(3)) && !(val & BIT(5)))
                     {
@@ -229,17 +268,24 @@ int pcd_com_transceive(hal_nfc_transceive_t *pi)
                     }
                 }
 
+                if (status == HAL_STATUS_TIMEOUT)
+                {
+                    break;
+                }
+
                 nfc_read_reg(REG_COMIRQ, &val);
 
                 nfc_write_reg(REG_COMIRQ, val);
 
                 if (val & BIT(0))
                 {
+                    pcd_last_wait = 't';
                     status = HAL_STATUS_TIMEOUT;
                 }
                 else
                 {
                     nfc_read_reg(REG_ERROR, &err);
+                    pcd_last_err = err;
 
                     status = HAL_STATUS_ERR;
                     if ((val & wait_for) && (val & irq_en))

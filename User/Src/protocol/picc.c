@@ -539,12 +539,14 @@ void init_t4t_entity(t4t_entity *tag)
 
 void picc_write(uint8_t *buf, uint16_t len)
 {
+    tick start;
+
     nfc_clear_bit(8, 0x3e, 0x20, 1);
     nfc_set_bit(8, 0x3e, 0x10, 1);
-    printf("PICC Send data:%d\r\n", len);
+    NFC_LOG("PICC Send data:%d\r\n", len);
     for (int i = 0; i < len; i++)
-        printf("%02x ", buf[i]);
-    printf("\r\n");
+        NFC_LOG("%02x ", buf[i]);
+    NFC_LOG("\r\n");
 
     for (uint16_t j = 0; j < len; j++)
     {
@@ -552,8 +554,14 @@ void picc_write(uint8_t *buf, uint16_t len)
     }
     // transmit command
     nfc_set_reg(0, 0x1, 4, 0);
+    start = get_tick();
     while (!nfc_check_bit(0, 0x04, PICC_TxIrq, 0) && (nfc_check_bit(8, 0x3e, 6, 1)))
-        ;
+    {
+        if (is_timeout(start, 30))
+        {
+            break;
+        }
+    }
     nfc_set_bit(0, 0x04, PICC_TxIrq, 0);
     nfc_set_bit(8, 0x3e, 0x20, 1);
 }
@@ -794,7 +802,9 @@ void picc_t2t_ack(void)
 
 void picc_reset(void)
 {
-    nfc_set_bit(9, 0x3a, 0x80, 1); // reset picc
+    NFC_LOG("pr:e\r\n");
+    nfc_set_reg(9, 0x3a, 0x80, 1); // reset picc without read-modify-write
+    NFC_LOG("pr:d\r\n");
 }
 
 void picc_uid_set(uint8_t *uid, uint8_t len)
@@ -1006,7 +1016,7 @@ static void picc_t4t_rats_process(uint8_t *buf, uint16_t len)
             memcpy(picc_run.tx_buf, &picc_conf.ats, sizeof(struct picc_ats));
             picc_run.tx_len = picc_conf.ats.TL;
             picc_write(picc_run.tx_buf, picc_run.tx_len);
-            printf("PICC is Activated\r\n");
+            NFC_LOG("PICC is Activated\r\n");
             picc_blk_num_set(1);
             picc_run_state(PICC_STATE_PPS);
             break;
@@ -1107,7 +1117,7 @@ static void picc_event_unregister(intc_event_e e)
 // 进场处理
 static void picc_field_in_callback(uint32_t event)
 {
-    printf("PICC Field In\r\n");
+    NFC_LOG("PICC Field In\r\n");
 }
 
 // 使能picc进场中断
@@ -1132,7 +1142,7 @@ static void picc_field_out_callback(uint32_t event)
     // {
     // 	mh1612s_card_emu_optimize_out_carrier_callback(opt_hw);
     // }
-    printf("PICC Field Out\r\n");
+    NFC_LOG("PICC Field Out\r\n");
 }
 
 static void picc_active_callback(uint32_t event)
@@ -1198,7 +1208,7 @@ static uint16_t picc_get_rx_len(void)
 
 void picc_err_callback(uint32_t event)
 {
-    printf("err:%x\n", picc_get_err());
+    NFC_LOG("err:%x\n", picc_get_err());
     picc_set_idle();
 }
 
@@ -1208,12 +1218,12 @@ void picc_rx_callback(uint32_t event)
     picc_run.rx_len = picc_get_rx_len();
     if (picc_run.rx_len)
     {
-        printf("PICC Recv data:%d\r\n", picc_run.rx_len);
+        NFC_LOG("PICC Recv data:%d\r\n", picc_run.rx_len);
         for (int i = 0; i < picc_run.rx_len; i++)
             picc_run.rx_buf[i] = nfc_get_reg(0, 0x09, 1);
         for (int i = 0; i < picc_run.rx_len; i++)
-            printf("%02x ", picc_run.rx_buf[i]);
-        printf("\r\n");
+            NFC_LOG("%02x ", picc_run.rx_buf[i]);
+        NFC_LOG("\r\n");
     }
     else
     {
@@ -1248,11 +1258,11 @@ void picc_rx_irq(uint8_t en, process_handle cb)
 void picc_t2t_read_callback(uint32_t event)
 {
 
-    printf(" I am picc \r\n");
+    NFC_LOG(" I am picc \r\n");
     picc_run.rx_len = picc_get_rx_len();
     if (picc_run.rx_len)
     {
-        printf("PICC Recv data:%d\r\n", picc_run.rx_len);
+        NFC_LOG("PICC Recv data:%d\r\n", picc_run.rx_len);
         for (int i = 0; i < picc_run.rx_len; i++)
         {
             picc_run.rx_buf[i] = hal_nfc_get_register(0, 0x09, 1);
@@ -1261,8 +1271,8 @@ void picc_t2t_read_callback(uint32_t event)
         if (picc_run.rx_buf[0] == 0xaa && picc_run.rx_buf[1] == 0xaa)
         {
             // for(int j = 0;j < 10;j++){
-            // printf("%02x ", picc_run.rx_buf[j]);}
-            // printf("\r\n");
+            // NFC_LOG("%02x ", picc_run.rx_buf[j]);}
+            // NFC_LOG("\r\n");
             hal_nfc_clear_register_bit(REG_TXMODE, BIT(7)); // 不使能发送crc
             hal_nfc_clear_register_bit(REG_RXMODE, BIT(7)); // 不使能接收crc
             picc_write(data_test, sizeof(data_test));
@@ -1274,7 +1284,7 @@ void picc_t2t_read_callback(uint32_t event)
         else
         {
             picc_err_callback(event);
-            printf("picc_err_callback  \n");
+            NFC_LOG("picc_err_callback  \n");
         }
     }
     else
@@ -1300,19 +1310,21 @@ void picc_task(void)
         switch (picc_run.state)
         {
         case PICC_STATE_INIT:
-            //	  printf("picc_init\r\n");
+            NFC_LOG("pt:ie\r\n");
             picc_init();
+            NFC_LOG("pt:id\r\n");
             picc_run.state = PICC_STATE_START;
             break;
         case PICC_STATE_STOP:
             picc_stop();
-            //   printf("picc_stop\r\n");
+            //   NFC_LOG("picc_stop\r\n");
             // NVIC_DisableIRQ(EXIT_IRQ_NUM);
             picc_run.state = PICC_STATE_IDLE;
             break;
         case PICC_STATE_START:
+            NFC_LOG("pt:se\r\n");
             picc_start();
-            //    printf("picc_start\r\n");
+            NFC_LOG("pt:sd\r\n");
             // NVIC_EnableIRQ(EXIT_IRQ_NUM);
             picc_run.state = PICC_STATE_IDLE;
             // picc_14443_4_enable(picc_conf.enable_14443_4);
@@ -1320,7 +1332,7 @@ void picc_task(void)
         case PICC_STATE_HALT:
             break;
         case PICC_STATE_IDLE:
-            // printf("PICC_STATE_IDLE\r\n");
+            // NFC_LOG("PICC_STATE_IDLE\r\n");
             break;
         case PICC_STATE_ACTIVE:
             if (picc_conf.enable_14443_4)
@@ -1329,10 +1341,10 @@ void picc_task(void)
             }
             else
             {
-                printf(" PICC_STATE_T2T\r\n");
+                NFC_LOG(" PICC_STATE_T2T\r\n");
                 picc_run.state = PICC_STATE_T2T;
             }
-            printf(" picc_rx_irq\r\n");
+            NFC_LOG(" picc_rx_irq\r\n");
             picc_rx_irq(1, picc_t2t_read_callback);
             break;
         case PICC_STATE_T2T:

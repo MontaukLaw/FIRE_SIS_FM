@@ -6,6 +6,9 @@ float cxxx2[4] = {13.550714, 12.053483, 12.082601, 11.999557};
 float cxxx3[4] = {13.895423, 12.456123, 12.358680, 12.417278};
 
 uint32_t exti_triggered_ts = 0;
+uint8_t shaked = 0;
+static uint32_t gsensor_uart_stream_until = 0;
+
 /**
  * @brief  External interrupt configuration function.
  * @param  None
@@ -23,13 +26,17 @@ static void APP_ExtiConfig(void)
     GPIO_InitStruct.Pin = G_SENSOR_INT_PIN;
     HAL_GPIO_Init(G_SENSOR_INT_PORT, &GPIO_InitStruct);
 
-    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);         /* Enable EXTI interrupt */
-    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0); /* Configure interrupt priority */
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    /* Enable EXTI interrupt */
+
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+    /* Configure interrupt priority */
 }
 
 // for WFI test
 int main(void)
 {
+    float combin_acc = 0.0f;
 
     APP_Config();
 
@@ -38,14 +45,42 @@ int main(void)
     // 设置外部中断
     APP_ExtiConfig();
 
-    mh1612s_init();
-
+    // mh1612s_init();
     // picc_init();
+
+    HAL_GPIO_EXTI_IRQHandler(G_SENSOR_INT_PIN);
+    HAL_GPIO_EXTI_IRQHandler(NFC_INT_PIN);
+
+    printf("Sys start\r\n");
 
     while (1)
     {
-        nfc_app();
         
+        sc7a20_read_acc(sc7a20_acc_data, &combin_acc);
+
+        if (gsensor_uart_stream_until != 0)
+        {
+            uint32_t now = HAL_GetTick();
+
+            if ((int32_t)(gsensor_uart_stream_until - now) > 0)
+            {
+                uart_send_gsensor_axes(
+                    sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2],
+                    sc7a20_delta_axes[0], sc7a20_delta_axes[1], sc7a20_delta_axes[2]);
+            }
+            else
+            {
+                gsensor_uart_stream_until = 0;
+            }
+        }
+
+        shake_and_play_task();
+        
+        // play_level1();
+        // printf("Sys running\r\n");
+        // HAL_Delay(2000);
+        // nfc_app();
+
         // sleep_check_task();
         // printf("Sys running\r\n");
     }
@@ -135,11 +170,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == G_SENSOR_INT_PIN)
     {
-        printf("INT triggered\r\n");
-        exti_triggered_ts = HAL_GetTick();
+        uint32_t now = HAL_GetTick();
+
+        if ((now - exti_triggered_ts) < GSENSOR_INT_EVENT_COOLDOWN_MS)
+        {
+            return;
+        }
+
+        exti_triggered_ts = now;
+        gsensor_uart_stream_until = now + GSENSOR_UART_STREAM_MS;
+        shaked = 1;
     }
     else if (GPIO_Pin == NFC_INT_PIN)
     {
-        printf("NFC INT triggered\r\n");
+        nfc_irq_pending = 1;
     }
 }

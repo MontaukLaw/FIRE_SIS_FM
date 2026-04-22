@@ -2,6 +2,7 @@
 
 volatile uint8_t read_fifo_flag = 0;
 volatile uint8_t reader_mode_flag = 0;
+volatile uint8_t nfc_irq_pending = 0;
 
 process_handle event_cb[EVENT_NUM];
 

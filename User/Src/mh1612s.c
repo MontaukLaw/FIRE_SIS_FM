@@ -28,7 +28,7 @@ void mh1612s_gpio_init(void)
     GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
     HAL_GPIO_Init(SPI_SCK_PORT, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = SPI_MISO_PIN || SPI_MOSI_PIN;
+    GPIO_InitStruct.Pin = SPI_MISO_PIN | SPI_MOSI_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF0_SPI1; // confirmed
@@ -59,8 +59,8 @@ void mh1612s_gpio_init(void)
     HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(SPI1_IRQn);
 
-    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0); // NFC INT优先级更高
-    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    // HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0); // NFC INT优先级更高
+    // HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
 void spi1_init(void)
@@ -137,13 +137,19 @@ HAL_StatusTypeDef nfc_write_reg(uint8_t addr, uint8_t value)
     tx_buf[0] = (uint8_t)((addr & 0x3F) << 1); // 写: bit7=0, bit0=0
     tx_buf[1] = value;
 
+    if (Spi1Handle.State != HAL_SPI_STATE_READY)
+    {
+        printf("Sb\r\n");
+        return HAL_BUSY;
+    }
+
     SPI_CS_LOW();
-    HAL_StatusTypeDef rtn = HAL_SPI_Transmit(&Spi1Handle, tx_buf, 2, HAL_MAX_DELAY);
+    HAL_StatusTypeDef rtn = HAL_SPI_Transmit(&Spi1Handle, tx_buf, 2, 10);
     SPI_CS_HIGH();
 
     if (rtn != HAL_OK)
     {
-        printf("SPI write error: %d\r\n", rtn);
+        printf("Sw\r\n");
     }
 
     return rtn;
@@ -158,16 +164,22 @@ HAL_StatusTypeDef nfc_read_reg(uint8_t addr, uint8_t *value)
         return HAL_ERROR;
     }
 
+    if (Spi1Handle.State != HAL_SPI_STATE_READY)
+    {
+        printf("Sr\r\n");
+        return HAL_BUSY;
+    }
+
     tx_buf[0] = (uint8_t)(0x80 | ((addr & 0x3F) << 1)); // 读: bit7=1, bit0=0
     tx_buf[1] = 0x00;                                   // dummy byte
 
     SPI_CS_LOW();
-    HAL_StatusTypeDef rtn = HAL_SPI_TransmitReceive(&Spi1Handle, tx_buf, rx_buf, 2, HAL_MAX_DELAY);
+    HAL_StatusTypeDef rtn = HAL_SPI_TransmitReceive(&Spi1Handle, tx_buf, rx_buf, 2, 10);
     SPI_CS_HIGH();
 
     if (rtn != HAL_OK)
     {
-        printf("SPI read error: %d\r\n", rtn);
+        printf("Se\r\n");
         return rtn;
     }
 
@@ -189,17 +201,13 @@ void mh1612s_init(void)
     // 拉低NFC_PWDN引脚，确保MH1612S上电
     HAL_GPIO_WritePin(NFC_PWDN_PORT, NFC_PWDN_PIN, GPIO_PIN_RESET);
 
-    printf("MH1612S reset\r\n");
-    
-    hal_nfc_pcd_reset();
+    NFC_LOG("NFC rst\r\n");
 
+    hal_nfc_pcd_reset();
 }
 
 void nfc_set_reg(uint8_t page, uint8_t addr, uint8_t value, uint8_t page_sel)
 {
-    // diable mcu irq
-    __disable_irq();
-
     if (page_sel)
     {
         switch (page)
@@ -240,20 +248,15 @@ void nfc_set_reg(uint8_t page, uint8_t addr, uint8_t value, uint8_t page_sel)
             break;
 
         default:
-            __enable_irq();
             return;
         }
     }
 
     nfc_write_reg(addr, value);
-    // enable mcu irq
-    __enable_irq();
 }
 
 uint8_t nfc_get_reg(uint8_t page, uint8_t addr, uint8_t page_sel)
 {
-
-    __disable_irq();
     uint8_t reg;
     if (page_sel) // 需要重新选择页码
     {
@@ -295,7 +298,6 @@ uint8_t nfc_get_reg(uint8_t page, uint8_t addr, uint8_t page_sel)
             break;
 
         default:
-            __enable_irq();
             return 0xFF;
         }
     }
@@ -303,7 +305,6 @@ uint8_t nfc_get_reg(uint8_t page, uint8_t addr, uint8_t page_sel)
     // 读功能寄存器
     nfc_read_reg(addr, &reg);
 
-    __enable_irq();
     return reg;
 }
 

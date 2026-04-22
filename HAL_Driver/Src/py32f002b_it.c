@@ -110,6 +110,7 @@ void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
 
 void EXTI4_15_IRQHandler(void)
 {
-    HAL_GPIO_EXTI_IRQHandler(G_SENSOR_INT_PIN); /* Processing EXTI interrupt requests */
+    HAL_GPIO_EXTI_IRQHandler(G_SENSOR_INT_PIN);
+    HAL_GPIO_EXTI_IRQHandler(NFC_INT_PIN);
 }
 /************************ (C) COPYRIGHT Puya *****END OF FILE******************/

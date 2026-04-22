@@ -1,3 +1,4 @@
+#include "user_define.h"
 #include "usart.h"
 
 UART_HandleTypeDef UartHandle; // 串口句柄
@@ -115,16 +116,17 @@ void USART1_Send_String(char *str)
 }
 
 /**
- * @brief 重定向printf
  *
  * @param ch 字符
  * @param f 文件指针
  * @return int 字符
  */
-int fputc(int ch, FILE *f)
+void USART1_Send_Hex8(uint8_t value)
 {
-    USART1_Send_Byte(ch);
-    return ch;
+    static const char hex[] = "0123456789ABCDEF";
+
+    USART1_Send_Byte(hex[value >> 4]);
+    USART1_Send_Byte(hex[value & 0x0F]);
 }
 
 void USART1_Send_Bytes(uint8_t *data, uint16_t size)
@@ -142,7 +144,7 @@ void USART1_Send_Bytes(uint8_t *data, uint16_t size)
  */
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-    printf("Uart Error, ErrorCode = %d\r\n", huart->ErrorCode);
+    (void)huart;
 }
 
 __IO static uint8_t tx_buf[64] = {0};
@@ -195,3 +197,56 @@ void uart_send_float_data(float data)
     tx_buf[5] = 0x0a; // \n
     USART1_Send_Bytes((uint8_t *)tx_buf, 6);
 }
+
+void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z, int16_t dx, int16_t dy, int16_t dz)
+{
+    uint8_t frame[17];
+
+    frame[0] = GSENSOR_UART_HEADER_0;
+    frame[1] = GSENSOR_UART_HEADER_1;
+    frame[2] = GSENSOR_UART_TYPE_RAW;
+    frame[3] = (uint8_t)(x & 0xFF);
+    frame[4] = (uint8_t)((x >> 8) & 0xFF);
+    frame[5] = (uint8_t)(y & 0xFF);
+    frame[6] = (uint8_t)((y >> 8) & 0xFF);
+    frame[7] = (uint8_t)(z & 0xFF);
+    frame[8] = (uint8_t)((z >> 8) & 0xFF);
+    frame[9] = (uint8_t)(dx & 0xFF);
+    frame[10] = (uint8_t)((dx >> 8) & 0xFF);
+    frame[11] = (uint8_t)(dy & 0xFF);
+    frame[12] = (uint8_t)((dy >> 8) & 0xFF);
+    frame[13] = (uint8_t)(dz & 0xFF);
+    frame[14] = (uint8_t)((dz >> 8) & 0xFF);
+    frame[15] = 0x0D;
+    frame[16] = 0x0A;
+
+    USART1_Send_Bytes(frame, sizeof(frame));
+}
+
+void uart_send_gsensor_event(uint8_t success, uint8_t fail_mask, int16_t peak_any, uint16_t energy, uint8_t active_samples, uint8_t rebound_detected)
+{
+    uint8_t frame[13];
+
+    frame[0] = GSENSOR_UART_HEADER_0;
+    frame[1] = GSENSOR_UART_HEADER_1;
+    frame[2] = GSENSOR_UART_TYPE_EVENT;
+    frame[3] = success;
+    frame[4] = fail_mask;
+    frame[5] = (uint8_t)(peak_any & 0xFF);
+    frame[6] = (uint8_t)((peak_any >> 8) & 0xFF);
+    frame[7] = (uint8_t)(energy & 0xFF);
+    frame[8] = (uint8_t)((energy >> 8) & 0xFF);
+    frame[9] = active_samples;
+    frame[10] = rebound_detected;
+    frame[11] = 0x0D;
+    frame[12] = 0x0A;
+
+    USART1_Send_Bytes(frame, sizeof(frame));
+}
+
+int fputc(int ch, FILE *f)
+{
+    USART1_Send_Byte(ch);
+    return ch;
+}
+

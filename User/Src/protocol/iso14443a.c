@@ -6,6 +6,32 @@
 
 extern uint8_t EMV_TEST;
 extern uint8_t NFC_DEBUG_LOG;
+extern uint8_t pcd_last_wait;
+extern uint8_t pcd_last_irq;
+extern uint8_t pcd_last_err;
+
+static void pcd_print_fail_diag(void)
+{
+	uint8_t fifo = 0;
+	uint8_t control = 0;
+
+	nfc_read_reg(REG_FIFOLEVEL, &fifo);
+	nfc_read_reg(REG_CONTROL, &control);
+
+	USART1_Send_String("D ");
+	USART1_Send_Byte(pcd_last_wait ? pcd_last_wait : '?');
+	USART1_Send_Byte(' ');
+	USART1_Send_Hex8(pcd_last_irq);
+	USART1_Send_Byte(' ');
+	USART1_Send_Hex8(pcd_last_err);
+	USART1_Send_Byte(' ');
+	USART1_Send_Hex8(fifo);
+	USART1_Send_Byte(' ');
+	USART1_Send_Hex8(control);
+	USART1_Send_Byte(' ');
+	USART1_Send_Byte(HAL_GPIO_ReadPin(NFC_INT_PORT, NFC_INT_PIN) ? '1' : '0');
+	USART1_Send_String("\r\n");
+}
 
 unsigned short gausMaxFrameSizeTable[] = {
 	16,
@@ -58,7 +84,7 @@ int pcd_request(uint8_t req_code, uint8_t *ptagtype)
 	hal_nfc_transceive_t pi;
 
 	if (NFC_DEBUG_LOG)
-		printf("REQA/WUPA:\n");
+		NFC_LOG("REQA/WUPA:\n");
 	nfc_write_reg(REG_BITFRAMING, 0x07); // Tx last bytes = 7
 
 	nfc_clear_reg_bit(REG_TXMODE, BIT(7));	// 不使能crc
@@ -85,9 +111,36 @@ int pcd_request(uint8_t req_code, uint8_t *ptagtype)
 
 	status = pcd_com_transceive(&pi);
 
+	if (status != HAL_STATUS_OK)
+	{
+		pcd_print_fail_diag();
+		if (NFC_DEBUG_LOG)
+		{
+			uint8_t comirq = 0;
+			uint8_t error = 0;
+			uint8_t fifo = 0;
+			uint8_t control = 0;
+
+			nfc_read_reg(REG_COMIRQ, &comirq);
+			nfc_read_reg(REG_ERROR, &error);
+			nfc_read_reg(REG_FIFOLEVEL, &fifo);
+			nfc_read_reg(REG_CONTROL, &control);
+
+			NFC_LOG("rq%d %02X %02X %02X %02X %d\r\n",
+				   status,
+				   comirq,
+				   error,
+				   fifo,
+				   control,
+				   HAL_GPIO_ReadPin(NFC_INT_PORT, NFC_INT_PIN));
+		}
+
+		return status;
+	}
+
 	if ((HAL_STATUS_OK == status) && pi.mf_length != 0x10)
 	{
-		printf("bit count err\r\n");
+		NFC_LOG("bit count err\r\n");
 		status = HAL_STATUS_BITCOUNT_ERR;
 	}
 
@@ -97,7 +150,7 @@ int pcd_request(uint8_t req_code, uint8_t *ptagtype)
 			(((pi.mf_data[1] & 0xF0) != 0) // RFU=0	"01 F0" //TA304.15
 			 ))
 		{
-			printf("ATQA:protocol err\n");
+			NFC_LOG("ATQA:protocol err\n");
 			status = HAL_STATUS_PROTOCOL_ERR;
 		}
 	}
@@ -135,7 +188,7 @@ int pcd_cascaded_anticoll(uint8_t select_code, uint8_t coll_position, uint8_t *p
 	coll_position = 0;
 	memset(snr, 0, sizeof(snr));
 	if (NFC_DEBUG_LOG)
-		printf("ANT:\n");
+		NFC_LOG("ANT:\n");
 	nfc_write_reg(REG_BITFRAMING, 0x00);   // // Tx last bits = 0, rx align = 0
 	nfc_clear_reg_bit(REG_TXMODE, BIT(7)); // 不使能crc
 	nfc_clear_reg_bit(REG_RXMODE, BIT(7)); // 不使能crc
@@ -192,7 +245,7 @@ int pcd_cascaded_anticoll(uint8_t select_code, uint8_t coll_position, uint8_t *p
 				else
 				{
 					if (NFC_DEBUG_LOG)
-						printf("Err:coll_p  mf_data[0]=%02x < bits=%02x\n", pi.mf_data[0], bits);
+						NFC_LOG("Err:coll_p  mf_data[0]=%02x < bits=%02x\n", pi.mf_data[0], bits);
 				}
 
 				/* 保留冲突位以前的有效位 */
@@ -290,7 +343,7 @@ int pcd_cascaded_select(uint8_t select_code, uint8_t *psnr, uint8_t *psak)
 	hal_nfc_transceive_t pi;
 	snr_check = 0;
 	if (NFC_DEBUG_LOG)
-		printf("SELECT:\n");
+		NFC_LOG("SELECT:\n");
 	nfc_write_reg(REG_BITFRAMING, 0x00); // // Tx last bits = 0, rx align = 0
 	nfc_set_reg_bit(REG_TXMODE, BIT(7)); // 使能发送crc
 	nfc_set_reg_bit(REG_RXMODE, BIT(7)); // 使能接收crc
@@ -351,7 +404,7 @@ int pcd_hlta(void)
 	hal_nfc_transceive_t pi;
 
 	if (NFC_DEBUG_LOG)
-		printf("HALT:\n");
+		NFC_LOG("HALT:\n");
 	nfc_write_reg(REG_BITFRAMING, 0x00);   // // Tx last bits = 0, rx align = 0
 	nfc_set_reg_bit(REG_TXMODE, BIT(7));   // 使能发送crc
 	nfc_clear_reg_bit(REG_RXMODE, BIT(7)); // 不使能接收crc
@@ -512,7 +565,7 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 	int status = HAL_STATUS_OK;
 
 	if (NFC_DEBUG_LOG)
-		printf("PPS:\n");
+		NFC_LOG("PPS:\n");
 
 	DRI = 0;
 	DSI = 0;
@@ -525,7 +578,7 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 		else if (rate == 2)
 		{
 			if (NFC_DEBUG_LOG)
-				printf("212K\n");
+				NFC_LOG("212K\n");
 			if ((ATS[2] & BIT(0)) && (ATS[2] & BIT(4)))
 			{ // DS=2,DR=2 supported 212kbps
 				DRI = 1;
@@ -534,14 +587,14 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 			else
 			{
 				if (NFC_DEBUG_LOG)
-					printf(",Unsupport\n");
+					NFC_LOG(",Unsupport\n");
 				return HAL_STATUS_USER_ERR;
 			}
 		}
 		else if (rate == 3)
 		{
 			if (NFC_DEBUG_LOG)
-				printf("424K\n");
+				NFC_LOG("424K\n");
 			if ((ATS[2] & BIT(1)) && (ATS[2] & BIT(5)))
 			{ // DS=4,DR=4 supported 424kbps
 				DRI = 2;
@@ -550,14 +603,14 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 			else
 			{
 				if (NFC_DEBUG_LOG)
-					printf(",Unsupport\n");
+					NFC_LOG(",Unsupport\n");
 				return HAL_STATUS_USER_ERR;
 			}
 		}
 		else if (rate == 4)
 		{
 			if (NFC_DEBUG_LOG)
-				printf("848K\n");
+				NFC_LOG("848K\n");
 			if ((ATS[2] & BIT(2)) && (ATS[2] & BIT(6)))
 			{ // DS=4,DR=4 supported 424kbps
 				DRI = 3;
@@ -566,14 +619,14 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 			else
 			{
 				if (NFC_DEBUG_LOG)
-					printf(",Unsupport\n");
+					NFC_LOG(",Unsupport\n");
 				return HAL_STATUS_USER_ERR;
 			}
 		}
 		else
 		{
 			if (NFC_DEBUG_LOG)
-				printf("USER:No Rate select\n");
+				NFC_LOG("USER:No Rate select\n");
 			return HAL_STATUS_USER_ERR;
 		}
 		nfc_write_reg(REG_BITFRAMING, 0x00); // // Tx last bits = 0, rx align = 0
@@ -591,7 +644,7 @@ int pcd_pps_rate(hal_nfc_transceive_t *pi, uint8_t *ATS, uint8_t CID, uint8_t ra
 			if (pi->mf_length == 8 && pi->mf_data[0] == ((0x0D << 4) + CID))
 			{ // PPS ok
 				if (NFC_DEBUG_LOG)
-					printf("pcd_pps_rate OK\n");
+					NFC_LOG("pcd_pps_rate OK\n");
 				if (rate == 1)
 				{
 					// pps到106k
@@ -631,7 +684,7 @@ int pcd_transmit(uint8_t *data, uint8_t tx_len)
 
 	hal_nfc_transceive_t pi;
 	if (NFC_DEBUG_LOG)
-		printf("pcd_transmit   : \n");
+		NFC_LOG("pcd_transmit   : \n");
 	nfc_write_reg(REG_BITFRAMING, 0x00);   // // Tx last bits = 0, rx align = 0
 	nfc_set_reg_bit(REG_TXMODE, BIT(7));   // 不使能发送crc
 	nfc_clear_reg_bit(REG_RXMODE, BIT(7)); // 不使能接收crc
@@ -693,7 +746,7 @@ int read_fifo(uint8_t *rx_data, uint8_t *rx_len)
 		if (!(val & ERR_IRQ))
 		{
 			hal_nfc_read_register(REG_FIFOLEVEL, &val_num);
-			
+
 			val_num = 0x7F & val_num;
 			hal_nfc_read_register(REG_RXMODE, &temp);
 			if (temp & BIT(7))
@@ -748,11 +801,11 @@ int apdu_exchange(uint8_t *data, uint8_t tx_len, uint8_t *rx_data, uint8_t *rx_l
 	int irq_status = HAL_STATUS_TIMEOUT;
 	tick system_tick;
 
-	printf("apdu_exchange   : \n");
+	NFC_LOG("apdu_exchange   : \n");
 	reader_mode_flag = 1;
 	// NVIC_EnableIRQ(EXIT_IRQ_NUM);
 	status = pcd_transmit(data, tx_len);
-	printf("pcd_transmit status   : %d\n", status);
+	NFC_LOG("pcd_transmit status   : %d\n", status);
 	if (status != 0)
 		return status;
 	system_tick = get_tick();
@@ -760,13 +813,13 @@ int apdu_exchange(uint8_t *data, uint8_t tx_len, uint8_t *rx_data, uint8_t *rx_l
 	while (!is_timeout(system_tick, 1000))
 	{
 		/****do other process****/
-		printf("wait irq   : \n");
+		NFC_LOG("wait irq   : \n");
 		mdelay(30);
 
 		if (read_fifo_flag)
 		{
 			irq_status = read_fifo(rx_data, rx_len);
-			printf("read_fifo_flag irq_status   : %d\n", irq_status);
+			NFC_LOG("read_fifo_flag irq_status   : %d\n", irq_status);
 			return irq_status;
 		}
 	};
@@ -783,7 +836,7 @@ int apdu(uint8_t *data, uint8_t tx_len, uint8_t *rx_data, uint8_t *rx_len)
 	hal_nfc_transceive_t pi;
 
 	if (NFC_DEBUG_LOG)
-		printf("apdu   : \n");
+		NFC_LOG("apdu   : \n");
 	;
 	nfc_write_reg(REG_BITFRAMING, 0x00);   // // Tx last bits = 0, rx align = 0
 	nfc_set_reg_bit(REG_TXMODE, BIT(7));   // 使能发送crc
@@ -802,7 +855,7 @@ int apdu(uint8_t *data, uint8_t tx_len, uint8_t *rx_data, uint8_t *rx_len)
 	if (status == MI_OK)
 	{
 		*rx_len = (pi.mf_length / 8) - 2;
-		printf("rx_len %d\r\n", *rx_len);
+		NFC_LOG("rx_len %d\r\n", *rx_len);
 		for (int i = 0; i < *rx_len; i++)
 		{
 			rx_data[i] = pi.mf_data[i];

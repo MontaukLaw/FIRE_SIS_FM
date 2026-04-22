@@ -51,4 +51,14 @@ static inline void hal_nfc_read_register(uint8_t addr, uint8_t *value)
     nfc_read_reg(addr, value);
 }
 
+#define NFC_DEBUG_PRINTF 0
+
+#if NFC_DEBUG_PRINTF
+#define NFC_LOG(...) printf(__VA_ARGS__)
+#else
+#define NFC_LOG(...) do {} while (0)
+#endif
+
+// #define printf(...) do {} while (0)
+
 #endif /* _USER_REFINE_H_ */

@@ -5,6 +5,8 @@ extern volatile uint8_t read_fifo_flag;
 
 extern volatile uint8_t reader_mode_flag;
 
+extern volatile uint8_t nfc_irq_pending;
+
 extern process_handle event_cb[];
 
 void intc_irq_register(intc_event_e e, process_handle cb);

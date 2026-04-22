@@ -6,6 +6,71 @@ uint32_t exchange_data_num = 0;
 uint8_t rx_buff_length = 0;
 uint8_t rx_buff[64] = {0};
 
+#define NFC_ROLE_SLICE_MS 500U
+
+static void nfc_dispatch_picc_irq(void)
+{
+    uint8_t com_irq = 0;
+    uint8_t field_irq = 0;
+    uint8_t picc_irq = 0;
+    uint32_t events = 0;
+
+    if (!nfc_irq_pending)
+    {
+        return;
+    }
+
+    nfc_irq_pending = 0;
+    nfc_read_reg(REG_COMIRQ, &com_irq);
+    nfc_write_reg(REG_COMIRQ, com_irq);
+    field_irq = nfc_get_reg(8, 0x3b, 1);
+    picc_irq = nfc_get_reg(8, 0x3e, 1);
+
+    if (com_irq & PICC_ErrIrq)
+    {
+        events |= (1UL << ERR_EVENT);
+    }
+    if (com_irq & PICC_IdleIrq)
+    {
+        events |= (1UL << IDLE_EVENT);
+    }
+    if (com_irq & PICC_RxIrq)
+    {
+        events |= (1UL << RX_EVENT);
+    }
+    if (com_irq & PICC_TxIrq)
+    {
+        events |= (1UL << TX_EVENT);
+    }
+
+    for (uint8_t i = 0; i < EVENT_NUM; i++)
+    {
+        if ((events & (1UL << i)) && event_cb[i])
+        {
+            event_cb[i](events);
+        }
+    }
+
+    if ((field_irq & 0x04) && picc_conf.event[PICC_FIELD_IN_EVENT])
+    {
+        picc_conf.event[PICC_FIELD_IN_EVENT](1UL << PICC_FIELD_IN_EVENT);
+    }
+    if ((field_irq & 0x08) && picc_conf.event[PICC_FIELD_OUT_EVENT])
+    {
+        picc_conf.event[PICC_FIELD_OUT_EVENT](1UL << PICC_FIELD_OUT_EVENT);
+    }
+    if ((picc_irq & 0x20) && picc_conf.event[PICC_ACTIVE_EVENT])
+    {
+        picc_conf.event[PICC_ACTIVE_EVENT](1UL << PICC_ACTIVE_EVENT);
+    }
+    if ((picc_irq & 0x10) && picc_conf.event[PICC_INACTIVE_EVENT])
+    {
+        picc_conf.event[PICC_INACTIVE_EVENT](1UL << PICC_INACTIVE_EVENT);
+    }
+
+    picc_task();
+}
+
 hal_nfc_regval_t COS_typeA_configs[36] =
     {
         {0, 0x01, 0x00}, // 打开接收，芯片处于Ready状态
@@ -93,44 +158,44 @@ uint8_t tx_buff[64] = {0xaa, 0xaa, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 
 
 void nfc_app(void)
 {
-    system_tick = get_tick(); // set init timer
+    static uint8_t last_state = STATE_MAX_TOP;
 
     switch (system_state)
     {
 
     case STATE_READ_CARD:
-
-        // NVIC_DisableIRQ(EXIT_IRQ_NUM);
-        hal_nfc_pcd_reset();
-        // printf("hal_nfc_pcd_reset\n");
-        nfc_config(COS_typeA_configs, sizeof(COS_typeA_configs) / sizeof(hal_nfc_regval_t));
-
-        if (is_timeout(system_tick, 500))
+        if (last_state != system_state)
         {
-            // printf("is_timeout exchange STATE_PICC_INIT()\n");
             hal_nfc_pcd_reset();
-            HAL_Delay(200);
-            // system_state = STATE_PICC_INIT;
-            system_state = STATE_READ_CARD;
+            HAL_Delay(10);
+            nfc_config(COS_typeA_configs, sizeof(COS_typeA_configs) / sizeof(hal_nfc_regval_t));
+            picc_stop();
+            HAL_Delay(20);
+            system_tick = get_tick();
+            last_state = system_state;
+            USART1_Send_String("R\r\n");
+        }
+
+        if (is_timeout(system_tick, NFC_ROLE_SLICE_MS))
+        {
+            system_state = STATE_PICC_INIT;
+            break;
         }
 
         if (reader_mode() == 0) // read succeed
         {
-            printf("reader_mode()==0\n");
-            system_tick = get_tick();
-            system_state++;
-            // system_state=STATE_PICC_INIT;
+            NFC_LOG("reader_mode()==0\r\n");
         }
         break;
 
     case STATE_READER_EXCHANGTE_DATA:
 
-        printf(" STATE_READER_EXCHANGTE_DATA1\n ");
+        NFC_LOG(" STATE_READER_EXCHANGTE_DATA1\n ");
 
         if (is_timeout(system_tick, 2000) || exchange_data_num >= SEND_DATA_NUM_MAX)
         {
             exchange_data_num = 0;
-            printf("STATE_READER_EXCHANGE_DATA  END  !!! \n");
+            NFC_LOG("STATE_READER_EXCHANGE_DATA  END  !!! \n");
             // system_state++;
             system_state = STATE_READ_CARD;
         }
@@ -138,10 +203,10 @@ void nfc_app(void)
         {
 
             system_tick = get_tick();
-            printf("rx_buff => %d,  %d\n", exchange_data_num, rx_buff_length);
+            NFC_LOG("rx_buff => %d,  %d\n", exchange_data_num, rx_buff_length);
             for (int i = 0; i < rx_buff_length; i++)
-                printf(" %02x", rx_buff[i]);
-            printf("\n");
+                NFC_LOG(" %02x", rx_buff[i]);
+            NFC_LOG("\n");
             for (int i = 0; i < sizeof(rx_buff); i++)
             {
                 rx_buff[i] = 0;
@@ -156,38 +221,34 @@ void nfc_app(void)
         break;
 
     case STATE_PICC_INIT:
-
-        printf("STATE_PICC_INIT\n");
-        // NVIC_DisableIRQ(EXIT_IRQ_NUM);
         hal_nfc_pcd_reset();
+        HAL_Delay(10);
 
-        set_picc_init();
+        picc_init();
+        picc_start();
 
         system_tick = get_tick();
-        system_state++;
+        system_state = STATE_PICC;
+        last_state = system_state;
+        USART1_Send_String("P\r\n");
         break;
 
     case STATE_PICC:
-        //  printf(" STATE_PICC ");
-        if (is_timeout(system_tick, 100000))
+        if (is_timeout(system_tick, NFC_ROLE_SLICE_MS))
         {
-            printf("STATE_PICC\n");
-            system_state++;
+            system_state = STATE_READ_CARD;
+            break;
         }
         else
         {
-            if (if_picc_state_active())
-            {
-                system_tick = get_tick();
-            }
-            picc_task();
+            nfc_dispatch_picc_irq();
         }
 
         break;
 
     case STATE_CLEAR:
 
-        printf("STATE_CLEAR\n");
+        NFC_LOG("STATE_CLEAR\n");
         if (nfc_check_bit(8, 0x3b, BIT1, 1))
         {
             system_tick = get_tick();

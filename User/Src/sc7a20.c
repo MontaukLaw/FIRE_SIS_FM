@@ -11,6 +11,10 @@ float base_g_buffer[SC7A20_INIT_MAX] = {0};
 uint8_t SC7A20_REG[10] = {0x57, 0x04, 0x98, 0x05, 0x08, 0x02, 0x05, 0x01, 0x15, 0x80};
 
 int16_t sc7a20_acc_data[3] = {0};
+int16_t sc7a20_delta_axes[3] = {0};
+float sc7a20_motion_delta = 0.0f;
+static int16_t prev_acc_data[3] = {0};
+static bool prev_acc_valid = false;
 
 static bool sc7a20_reg_write(uint8_t reg_start_addr, uint8_t *reg_array, uint8_t num, uint8_t sc7a20_waddr)
 {
@@ -56,7 +60,16 @@ void sc7a20_init(void)
 void init_gsensor_for_interrupt(void)
 {
 
-    uint8_t init_data[16] = {0x3f, 0x88, 0x31, 0x40, 0x00, 0x00, 0x2a, 0x08, 0x02};
+    uint8_t init_data[16] = {
+        GSENSOR_INT_CTRL_REG1,
+        GSENSOR_INT_CTRL_REG4,
+        GSENSOR_INT_CTRL_REG2,
+        GSENSOR_INT_CTRL_REG3,
+        GSENSOR_INT_CTRL_REG6,
+        GSENSOR_INT_CTRL_REG5,
+        GSENSOR_INT_AOI1_CFG,
+        GSENSOR_INT_AOI1_THS,
+        GSENSOR_INT_AOI1_DUR};
 
     // CTRL_REG1 (0x20)
     // ODR=25Hz, 低功耗模式, XYZ 三轴使能
@@ -137,6 +150,10 @@ void sc7a20_read_acc(int16_t *acc_data, float *combin_acc)
     uint8_t raw_data[6] = {0};
     uint8_t i;
     float temp = 0.0f;
+    int16_t delta_x;
+    int16_t delta_y;
+    int16_t delta_z;
+    int16_t max_delta;
 
     for (i = 0; i < 6; i++)
     {
@@ -147,6 +164,40 @@ void sc7a20_read_acc(int16_t *acc_data, float *combin_acc)
     acc_data[0] = (int16_t)(raw_data[1] << 8 | raw_data[0]) >> 6;
     acc_data[1] = (int16_t)(raw_data[3] << 8 | raw_data[2]) >> 6;
     acc_data[2] = (int16_t)(raw_data[5] << 8 | raw_data[4]) >> 6;
+
+    if (prev_acc_valid)
+    {
+        delta_x = acc_data[0] - prev_acc_data[0];
+        delta_y = acc_data[1] - prev_acc_data[1];
+        delta_z = acc_data[2] - prev_acc_data[2];
+
+        sc7a20_delta_axes[0] = delta_x;
+        sc7a20_delta_axes[1] = delta_y;
+        sc7a20_delta_axes[2] = delta_z;
+
+        max_delta = (int16_t)abs(delta_x);
+        if ((int16_t)abs(delta_y) > max_delta)
+        {
+            max_delta = (int16_t)abs(delta_y);
+        }
+        if ((int16_t)abs(delta_z) > max_delta)
+        {
+            max_delta = (int16_t)abs(delta_z);
+        }
+        sc7a20_motion_delta = (float)max_delta;
+    }
+    else
+    {
+        sc7a20_delta_axes[0] = 0;
+        sc7a20_delta_axes[1] = 0;
+        sc7a20_delta_axes[2] = 0;
+        sc7a20_motion_delta = 0.0f;
+        prev_acc_valid = true;
+    }
+
+    prev_acc_data[0] = acc_data[0];
+    prev_acc_data[1] = acc_data[1];
+    prev_acc_data[2] = acc_data[2];
 
     // 三轴合成加速度
     temp = sqrtf(acc_data[0] * acc_data[0] + acc_data[1] * acc_data[1] + acc_data[2] * acc_data[2]);

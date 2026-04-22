@@ -35,26 +35,33 @@ struct picc_config_t picc_conf = {
 void picc_init(void)
 {
     // 把 PICC 相关状态机、寄存器、FIFO 或上下文恢复到初始状态。
+    NFC_LOG("pi:r\r\n");
     picc_reset();
 
     // 加载一套 PICC 专用寄存器配置表。
+    NFC_LOG("pi:c\r\n");
     nfc_config(picc_configs, sizeof(picc_configs) / sizeof(hal_nfc_regval_t));
 
     // 设置卡 UID
+    NFC_LOG("pi:u\r\n");
     picc_uid_set(picc_conf.uid, picc_conf.coll_level == 2 ? 7 : 4);
 
     // ATQA 是 Type A 卡在防冲突初期返回给读卡器的信息，所以这句已经非常能说明：
     // 这就是在配置“我这张卡要怎么回应 REQA / WUPA”。
+    NFC_LOG("pi:a\r\n");
     picc_set_atqa_hbyte(picc_conf.atqa >> 8);
     picc_set_atqa_lbyte(picc_conf.atqa & 0x1F);
 
     // 决定要不要支持 ISO14443-4。
+    NFC_LOG("pi:p\r\n");
     picc_14443_4_enable(picc_conf.enable_14443_4);
 
+    NFC_LOG("pi:i\r\n");
     picc_field_in_irq(1);
     picc_field_out_irq(1);
 
     picc_active_irq(1);
+    NFC_LOG("pi:d\r\n");
 
     // picc_rx_irq(1);
 }
