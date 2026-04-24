@@ -1,188 +1,75 @@
 #include "main.h"
-
-float cxxx0[4] = {13.806267, 12.406244, 12.293915, 12.196392};
-float cxxx1[4] = {13.775604, 12.385233, 12.297818, 12.312315};
-float cxxx2[4] = {13.550714, 12.053483, 12.082601, 11.999557};
-float cxxx3[4] = {13.895423, 12.456123, 12.358680, 12.417278};
+#include "tap_algo.h"
 
 uint32_t exti_triggered_ts = 0;
 uint8_t shaked = 0;
 static uint32_t gsensor_uart_stream_until = 0;
 
-/**
- * @brief  External interrupt configuration function.
- * @param  None
- * @retval None
- */
 static void APP_ExtiConfig(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-    __HAL_RCC_GPIOA_CLK_ENABLE(); /* Enable GPIOA clock */
+    __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;   /* 上升沿中断 */
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;         /* 下拉 */
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; /* 高速 */
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Pin = G_SENSOR_INT_PIN;
     HAL_GPIO_Init(G_SENSOR_INT_PORT, &GPIO_InitStruct);
 
     HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
-    /* Enable EXTI interrupt */
-
     HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
-    /* Configure interrupt priority */
 }
 
-// for WFI test
+TapCtx tap_ctx;
+// Tap_Process() 运算时间大概是650us
+// sc7a20_read_acc_raw() 运行时间大概是6个ms
 int main(void)
 {
-    float combin_acc = 0.0f;
+    uint32_t last_sample_ts = 0;
+    uint32_t last_debug_ts = 0;
 
     APP_Config();
-
-    init_gsensor_for_interrupt();
-
-    // 设置外部中断
-    APP_ExtiConfig();
-
-    // mh1612s_init();
-    // picc_init();
-
-    HAL_GPIO_EXTI_IRQHandler(G_SENSOR_INT_PIN);
-    HAL_GPIO_EXTI_IRQHandler(NFC_INT_PIN);
-
-    printf("Sys start\r\n");
-
-    while (1)
-    {
-        
-        sc7a20_read_acc(sc7a20_acc_data, &combin_acc);
-
-        if (gsensor_uart_stream_until != 0)
-        {
-            uint32_t now = HAL_GetTick();
-
-            if ((int32_t)(gsensor_uart_stream_until - now) > 0)
-            {
-                uart_send_gsensor_axes(
-                    sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2],
-                    sc7a20_delta_axes[0], sc7a20_delta_axes[1], sc7a20_delta_axes[2]);
-            }
-            else
-            {
-                gsensor_uart_stream_until = 0;
-            }
-        }
-
-        shake_and_play_task();
-        
-        // play_level1();
-        // printf("Sys running\r\n");
-        // HAL_Delay(2000);
-        // nfc_app();
-
-        // sleep_check_task();
-        // printf("Sys running\r\n");
-    }
-}
-
-int main_(void)
-{
-    static uint16_t test_counter = 0;
-
-    APP_Config();
-
-    // printf("Sys start\r\n");
-
-    WaveDetector_Init(&c0_wave_detector);
+    // delay 200ms
+    HAL_Delay(200);
 
     sc7a20_init();
-    float combin_acc = 0.0f;
-    // float combin_acc_lp = 0.0f;
+
+    Tap_Init(&tap_ctx);
+
+    printf("Sys start\r\n");
+    bool tap_detected = false;
+    uint8_t counter = 0;
+    uint16_t i;
 
     while (1)
     {
-        sc7a20_read_acc(sc7a20_acc_data, &combin_acc);
-        play_voice_base_g(combin_acc);
+        uint32_t now = HAL_GetTick();
 
-        read_rmof_addres3();
-        baseline_tracking((float *)c_real_time_value);
+        /* 200Hz: 每 5ms 采样一次，只跑新的整数状态机。 */
+        if ((now - last_sample_ts) < 5U)
+            continue;
 
-        WaveDetector_Process(&c0_wave_detector, result_data[0], g.base_noise[0] * K_TH_F, g.base_noise[0] * K_TH_OFF_F);
-        uart_send_multi_data();
-        play_voice_base_wave_detector(c0_wave_detector);
-
-        HAL_Delay(1);
-    }
-
-    while (1)
-    {
-        get_all_parastic_cap();
-        print_parastic_cap();
-        HAL_Delay(5000);
-    }
-
-    while (1)
-    {
-
-        read_rmof_addres3();
-        baseline_tracking((float *)c_real_time_value);
-
-        // uart_send_data(c_real_time_value);
-        // uart_send_data(result_data);
-
-        WaveDetector_Process(&c0_wave_detector, result_data[0], g.base_line[0] * K_TH_F, g.base_line[0] * K_TH_OFF_F);
-        uart_send_multi_data();
-
-        play_voice_base_wave_detector(c0_wave_detector);
-
-        // play_voice_base_result_data(result_data[0]);
-        HAL_Delay(1);
-    }
-
-    while (0)
-    {
-
-        // 定期刷新看门狗
-        // feed_dog();
-        test_counter++;
-        if (test_counter > 14)
+        sc7a20_reg_read_bytes_public(sc7a20_acc_data);
+       
+        tap_detected = Tap_Process(&tap_ctx, sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2]);
+        if (tap_detected)
         {
-            test_counter = 1;
+            play_voice(1);
         }
-        play_voice_no_repeat(8); // 播放语音1
-        printf("playing voice %d\r\n", test_counter);
-        // HAL_Delay(2000);
-        // HAL_GPIO_TogglePin(LED_W_PORT, LED_W_PIN); // 切换LED状态
+        
+        // uart_send_gsensor_axes(sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2]);
 
-        // USART1_Send_String("Running\r\n");
-        // get_all_parastic_cap();
-        // print_parastic_cap();
-
-        // read_rmof_addres3();
-        // print_1002_data();
-        HAL_Delay(3000);
+        last_sample_ts = now;
     }
-    return 0;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == G_SENSOR_INT_PIN)
     {
-        uint32_t now = HAL_GetTick();
-
-        if ((now - exti_triggered_ts) < GSENSOR_INT_EVENT_COOLDOWN_MS)
-        {
-            return;
-        }
-
-        exti_triggered_ts = now;
-        gsensor_uart_stream_until = now + GSENSOR_UART_STREAM_MS;
-        shaked = 1;
     }
     else if (GPIO_Pin == NFC_INT_PIN)
     {
-        nfc_irq_pending = 1;
     }
 }

@@ -1,6 +1,8 @@
 #ifndef _VOICE_APP_H_
 #define _VOICE_APP_H_
 
+void play_voice(uint8_t voice_idx);
+
 void play_voice_no_repeat(uint8_t voice_idx);
 
 void play_voice_base_result_data(float result);

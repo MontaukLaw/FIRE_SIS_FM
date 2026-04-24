@@ -10,7 +10,7 @@
 #define STEP_WIDTH 5
 
 #define I2C_ADDRESS 0xA0                 /* Local address 0xA0 */
-#define I2C_SPEEDCLOCK 4000000           /* Communication speed 400K */
+#define I2C_SPEEDCLOCK 400000            /* Communication speed 400K */
 #define I2C_DUTYCYCLE I2C_DUTYCYCLE_16_9 /* Duty cycle */
 
 // ch0

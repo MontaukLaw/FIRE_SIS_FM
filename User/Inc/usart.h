@@ -27,7 +27,7 @@ void uart_send_multi_data(void);
 
 void uart_send_float_data(float data);
 
-void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z, int16_t dx, int16_t dy, int16_t dz);
+void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z);
 void uart_send_gsensor_event(uint8_t success, uint8_t fail_mask, int16_t peak_any, uint16_t energy, uint8_t active_samples, uint8_t rebound_detected);
 
 #endif

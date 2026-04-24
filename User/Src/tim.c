@@ -10,7 +10,6 @@ volatile uint8_t timer_coe = 0;     // 定时器系数
 // volatile uint8_t us_delay_flag = 0;
 // volatile uint8_t if_timer_start = 0;
 
-volatile uint8_t delay_tick = 0;
 
 // TIM初始化
 // 239对应10uS
@@ -34,21 +33,7 @@ void APP_TimConfig(void)
 // TIM回调函数
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    if (delay_tick > 0)
-    {
-        delay_tick--;
-    }
-}
-
-void delay_100us(void)
-{
-    __disable_irq();
-    delay_tick = 10; // 10 * 10us
-    __enable_irq();
-
-    while (delay_tick > 0)
-    {
-    }
+    (void)htim;
 }
 
 // 错误处理函数

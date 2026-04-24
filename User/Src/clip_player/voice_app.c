@@ -13,6 +13,20 @@ static int16_t abs_i16(int16_t value)
     return (value < 0) ? (int16_t)(-value) : value;
 }
 
+static uint16_t calc_weighted_motion(int16_t dx, int16_t dy, int16_t dz)
+{
+#if (GSENSOR_AXIS_MODE == GSENSOR_AXIS_MODE_Z_ONLY)
+    (void)dx;
+    (void)dy;
+    return (uint16_t)abs_i16(dz);
+#else
+    return (uint16_t)((abs_i16(dx) * GSENSOR_AXIS_WEIGHT_X +
+                       abs_i16(dy) * GSENSOR_AXIS_WEIGHT_Y +
+                       abs_i16(dz) * GSENSOR_AXIS_WEIGHT_Z) /
+                      100U);
+#endif
+}
+
 void play_one_pulse(void)
 {
     HAL_GPIO_WritePin(VOICE_PORT, VOICE_PIN, GPIO_PIN_SET);
@@ -168,6 +182,7 @@ void shake_and_play_task(void)
         bool success = false;
         bool rebound_detected = false;
         int16_t peak_any;
+        uint16_t weighted_motion;
 
         /* Too close to the last accepted event: discard this one immediately. */
         if ((now - last_shake_play_ts) < GSENSOR_INT_PLAY_COOLDOWN_MS)
@@ -217,13 +232,15 @@ void shake_and_play_task(void)
             peak_neg_dz = sc7a20_delta_axes[2];
         }
 
-        /* Accumulate short-window "energy" from all three axes. */
-        feature_energy += (uint16_t)(abs_i16(sc7a20_delta_axes[0]) +
-                                     abs_i16(sc7a20_delta_axes[1]) +
-                                     abs_i16(sc7a20_delta_axes[2]));
+        weighted_motion = calc_weighted_motion(sc7a20_delta_axes[0],
+                                               sc7a20_delta_axes[1],
+                                               sc7a20_delta_axes[2]);
 
-        /* Count how many samples are truly active rather than tiny jitter. */
-        if (sc7a20_motion_delta >= GSENSOR_FEATURE_ACTIVE_TH)
+        /* Accumulate short-window "energy" with Z-axis priority. */
+        feature_energy += weighted_motion;
+
+        /* Count how many samples are truly active after axis weighting. */
+        if (weighted_motion >= GSENSOR_FEATURE_ACTIVE_TH)
         {
             feature_active_samples++;
         }
@@ -234,22 +251,13 @@ void shake_and_play_task(void)
             return;
         }
 
-        /* Use the largest absolute axis peak as the event's peak strength. */
-        peak_any = peak_abs_dx;
-        if (peak_abs_dy > peak_any)
-        {
-            peak_any = peak_abs_dy;
-        }
-        if (peak_abs_dz > peak_any)
-        {
-            peak_any = peak_abs_dz;
-        }
+        /* Final acceptance must come from Z. X/Y only help as auxiliary energy. */
+        peak_any = peak_abs_dz;
 
-        /* A tap usually has rebound: at least one axis swings both positive and negative. */
+        /* Rebound also uses Z only, so side-axis motion cannot fake a tap. */
         rebound_detected =
-            ((peak_pos_dx >= GSENSOR_FEATURE_REBOUND_TH) && (peak_neg_dx <= -GSENSOR_FEATURE_REBOUND_TH)) ||
-            ((peak_pos_dy >= GSENSOR_FEATURE_REBOUND_TH) && (peak_neg_dy <= -GSENSOR_FEATURE_REBOUND_TH)) ||
-            ((peak_pos_dz >= GSENSOR_FEATURE_REBOUND_TH) && (peak_neg_dz <= -GSENSOR_FEATURE_REBOUND_TH));
+            (peak_pos_dz >= GSENSOR_FEATURE_REBOUND_TH) &&
+            (peak_neg_dz <= -GSENSOR_FEATURE_REBOUND_TH);
 
         /* Build a bitmask that says exactly which checks failed. */
         if (peak_any < GSENSOR_FEATURE_PEAK_TH)

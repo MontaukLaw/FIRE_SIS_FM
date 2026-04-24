@@ -13,6 +13,6 @@ extern volatile uint8_t us_delay_flag;
 void APP_TimConfig(void);
 void APP_ErrorHandler(void);
 
-void delay_100us(void);
+// void delay_100us(void);
 
 #endif

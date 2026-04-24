@@ -5,10 +5,12 @@
 #include <stdbool.h>
 #include <math.h>
 
+/* =========================
+ * 板级硬件引脚定义
+ * ========================= */
 #define LED_W_PORT GPIOC
 #define LED_W_PIN GPIO_PIN_1
 
-// 改了一下.
 #define RM_RST_PORT LED_W_PORT
 #define RM_RST_PIN LED_W_PIN
 
@@ -21,38 +23,31 @@
 #define SC7A20_VDD_PORT GPIOA
 #define SC7A20_VDD_PIN GPIO_PIN_6
 
+/* =========================
+ * 传感/算法基础参数
+ * ========================= */
 #define TOTAL_SENSOR_NUMBER 4
-
 #define INIT_ZERO_TIMES 100
-
 #define NOISE_MIN 1.0f
 
-// 尽量灵敏
-// K_TH_F = 3 ~ 5：比较敏感
-// K_TH_F = 5 ~ 8：中等稳健
-// K_TH_F = 8 ~ 12：更保守
-// #define K_TH_F 5.0f
+/* K_TH_F 越小越灵敏，越大越保守。 */
 #define K_TH_F 5.0f
-// 2.0~4.0f比较合适, 过小可能导致接触后无法离开, 过大可能导致接触后立即离开
 #define K_TH_OFF_F 2.0f
 
-#define S_NORM_ON 80      // 160     // 进入门槛
-#define S_NORM_HOLD_NUM 3 // hold = 3/4 on
+#define S_NORM_ON 80
+#define S_NORM_HOLD_NUM 3
 #define S_NORM_HOLD_DEN 4
-
-#define S_NORM_OFF_NUM 1 // off  = 1/2 on
+#define S_NORM_OFF_NUM 1
 #define S_NORM_OFF_DEN 2
 
-#define C_ON 2   // 进入：活跃通道数≥2
-#define C_HOLD 1 // 维持：≥1
-#define C_OFF 0  // 释放：=0
+#define C_ON 2
+#define C_HOLD 1
+#define C_OFF 0
 
 #define SON_NUM 3.0f
 #define SON_DEN 2.0f
-
 #define HOLD_NUM 3.0f
 #define HOLD_DEN 3.0f
-
 #define OFF_NUM 3.0f
 #define OFF_DEN 4.0f
 
@@ -61,30 +56,28 @@
 
 #define ACTIVATE_BASE_BETA_NUM 1
 #define ACTIVATE_BASE_BETA_DEN 3
-
 #define ACTIVATE_NOISE_BETA_NUM 1
 #define ACTIVATE_NOISE_BETA_DEN 5
 
-// 基线/噪声 EMA（β≈0.01，仅IDLE更新）
 #define BASE_BETA_NUM 1
 #define BASE_BETA_DEN 10
-
 #define NOISE_IDEL_NUM 1
 #define NOISE_IDEL_DEN 100
 
 #define MAX_SENSORS TOTAL_SENSOR_NUMBER
 #define MAX_CH_NMB MAX_SENSORS
 
+/* =========================
+ * 中断与休眠
+ * ========================= */
 #define G_SENSOR_INT_PORT GPIOA
 #define G_SENSOR_INT_PIN GPIO_PIN_7
 
-#define SLEEP_CHECK_MAX 5000 // ms
+#define SLEEP_CHECK_MAX 5000
 
-// PA1 -> SPI1_MISO
-// PA0 -> SPI1_MOSI
-// PB0 -> SPI1_SCK
-// PB5 -> SPI1_NSS
-
+/* =========================
+ * SPI / NFC 硬件引脚
+ * ========================= */
 #define SPI_SCK_PORT GPIOB
 #define SPI_SCK_PIN GPIO_PIN_0
 
@@ -103,7 +96,9 @@
 #define NFC_PWDN_PORT GPIOB
 #define NFC_PWDN_PIN GPIO_PIN_1
 
-/* PCD 命令字 */
+/* =========================
+ * PCD 命令字
+ * ========================= */
 #define PCD_IDLE 0x00
 #define PCD_AUTHENT 0x0E
 #define PCD_RECEIVE 0x08
@@ -112,7 +107,9 @@
 #define PCD_RESETPHASE 0x0F
 #define PCD_CALCRC 0x03
 
-/* Registers bits */
+/* =========================
+ * 寄存器位定义
+ * ========================= */
 #define TX_IEN BIT(6)
 #define RX_IEN BIT(5)
 #define IDEL_IEN BIT(4)
@@ -135,7 +132,9 @@
 #define RX_ALIGN (BIT(4) | BIT(5) | BIT(6))
 #define TX_LAST_BITS (BIT(0) | BIT(1) | BIT(2))
 
-/*Hal transceive status code */
+/* =========================
+ * HAL 收发状态码
+ * ========================= */
 #define HAL_STATUS_OK (0)
 #define HAL_STATUS_TIMEOUT (-1)
 #define HAL_STATUS_AUTH_ERR (-4)
@@ -154,7 +153,9 @@
 #define HAL_STATUS_PROTOCOL_ERR (-126)
 #define HAL_STATUS_USER_ERR (-127)
 
-/* Registers address define */
+/* =========================
+ * NFC 芯片寄存器地址
+ * ========================= */
 /* PAGE 0 */
 #define REG_COMMAND 0x01
 #define REG_COMIEN 0x02
@@ -219,6 +220,9 @@
 #define REG_PAGESEL 0x37
 #define GSPOUT 0x01
 
+/* =========================
+ * ISO14443 块格式掩码
+ * ========================= */
 #define PCD_CMD_I_BLOCK_Msk 0xe2
 #define PCD_CMD_I_BLOCK 0x02
 
@@ -229,6 +233,9 @@
 #define PCD_CMD_S_BLOCK_Msk 0xc7
 #define PCD_CMD_S_BLOCK 0xc2
 
+/* =========================
+ * 通用位宏
+ * ========================= */
 #define BIT0 (0x00000001U)
 #define BIT1 (0x00000002U)
 #define BIT2 (0x00000004U)
@@ -264,12 +271,18 @@
 
 #define BIT(n) (1UL << (n))
 
+/* =========================
+ * 语音分级与基础阈值
+ * ========================= */
 #define LEVEL_1 20
 #define LEVEL_2 100
 #define LEVEL_3 250
 
 #define TH_MIN_ABS 3.0f
 
+/* =========================
+ * SC7A20 基础参数
+ * ========================= */
 #define SC7A20_INIT_MAX 100
 
 #define GSENSOR_INT_PROFILE_VERY_SLOW 0
@@ -278,8 +291,6 @@
 #define GSENSOR_INT_PROFILE_SENSITIVE 3
 
 #ifndef GSENSOR_INT_PROFILE
-
-/* 默认从最迟钝开始测，先压误触发。 */
 #define GSENSOR_INT_PROFILE GSENSOR_INT_PROFILE_BALANCED
 #endif
 
@@ -291,37 +302,45 @@
 #define GSENSOR_INT_AOI1_CFG 0x2A
 
 #if (GSENSOR_INT_PROFILE == GSENSOR_INT_PROFILE_VERY_SLOW)
-/* 最迟钝：优先压翻转/轻拍误触发 */
-#define GSENSOR_INT_CTRL_REG1 0x4F
-#define GSENSOR_INT_AOI1_THS 0x18
+#define GSENSOR_INT_CTRL_REG1 0x57
+#define GSENSOR_INT_AOI1_THS 0x1A
 #define GSENSOR_INT_AOI1_DUR 0x02
 #elif (GSENSOR_INT_PROFILE == GSENSOR_INT_PROFILE_SLOW)
-/* 最迟钝：更高阈值 + 更长持续时间 */
-#define GSENSOR_INT_CTRL_REG1 0x5F
+#define GSENSOR_INT_CTRL_REG1 0x57
 #define GSENSOR_INT_AOI1_THS 0x12
 #define GSENSOR_INT_AOI1_DUR 0x01
 #elif (GSENSOR_INT_PROFILE == GSENSOR_INT_PROFILE_BALANCED)
-/* 均衡：兼顾误触和响应 */
-#define GSENSOR_INT_CTRL_REG1 0x5F
+#define GSENSOR_INT_CTRL_REG1 0x57
 #define GSENSOR_INT_AOI1_THS 0x10
 #define GSENSOR_INT_AOI1_DUR 0x01
 #elif (GSENSOR_INT_PROFILE == GSENSOR_INT_PROFILE_SENSITIVE)
-/* 较灵敏：更容易触发，但误触概率更高 */
-#define GSENSOR_INT_CTRL_REG1 0x5F
+#define GSENSOR_INT_CTRL_REG1 0x57
 #define GSENSOR_INT_AOI1_THS 0x0C
 #define GSENSOR_INT_AOI1_DUR 0x00
 #else
 #error "Invalid GSENSOR_INT_PROFILE"
 #endif
 
-#define GSENSOR_INT_EVENT_COOLDOWN_MS 600U // 1500U
-#define GSENSOR_INT_PLAY_COOLDOWN_MS 900U  // 2000U
+/* =========================
+ * GSENSOR 软件判定参数
+ * ========================= */
+#define GSENSOR_INT_EVENT_COOLDOWN_MS 600U
+#define GSENSOR_INT_PLAY_COOLDOWN_MS 900U
 #define GSENSOR_CONFIRM_WINDOW_MS 120U
 #define GSENSOR_FEATURE_PEAK_TH 60
 #define GSENSOR_FEATURE_ENERGY_TH 250
 #define GSENSOR_FEATURE_REBOUND_TH 25
 #define GSENSOR_FEATURE_ACTIVE_TH 20
 #define GSENSOR_FEATURE_ACTIVE_COUNT 3
+
+#define GSENSOR_AXIS_MODE_WEIGHTED 0
+#define GSENSOR_AXIS_MODE_Z_ONLY 1
+#define GSENSOR_AXIS_MODE GSENSOR_AXIS_MODE_WEIGHTED
+#define GSENSOR_AXIS_WEIGHT_X 15U
+#define GSENSOR_AXIS_WEIGHT_Y 15U
+#define GSENSOR_AXIS_WEIGHT_Z 70U
+
+#define GSENSOR_UART_STREAM_ENABLE 0
 #define GSENSOR_UART_STREAM_MS 300U
 #define GSENSOR_EVENT_DEBUG_PRINTF 0
 
@@ -338,6 +357,9 @@
 
 #define G_THRESHOLD 250.0f
 
+/* =========================
+ * 通用类型别名
+ * ========================= */
 #define u8 uint8_t
 #define u16 uint16_t
 #define u32 uint32_t
@@ -346,10 +368,10 @@
 #define UID_7 7
 #define UID_10 10
 
-#define PICC_CID 0x00 // 0~14 随意指定
+#define PICC_CID 0x00
 
 #define SEND_DATA_NUM_MAX 100
-#define MAX_TRX_BUF_SIZE 64 // 255
+#define MAX_TRX_BUF_SIZE 64
 
 #define FSDI 8
 #define FIFO_SIZE 64

@@ -198,9 +198,9 @@ void uart_send_float_data(float data)
     USART1_Send_Bytes((uint8_t *)tx_buf, 6);
 }
 
-void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z, int16_t dx, int16_t dy, int16_t dz)
+void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z)
 {
-    uint8_t frame[17];
+    uint8_t frame[11];
 
     frame[0] = GSENSOR_UART_HEADER_0;
     frame[1] = GSENSOR_UART_HEADER_1;
@@ -211,14 +211,8 @@ void uart_send_gsensor_axes(int16_t x, int16_t y, int16_t z, int16_t dx, int16_t
     frame[6] = (uint8_t)((y >> 8) & 0xFF);
     frame[7] = (uint8_t)(z & 0xFF);
     frame[8] = (uint8_t)((z >> 8) & 0xFF);
-    frame[9] = (uint8_t)(dx & 0xFF);
-    frame[10] = (uint8_t)((dx >> 8) & 0xFF);
-    frame[11] = (uint8_t)(dy & 0xFF);
-    frame[12] = (uint8_t)((dy >> 8) & 0xFF);
-    frame[13] = (uint8_t)(dz & 0xFF);
-    frame[14] = (uint8_t)((dz >> 8) & 0xFF);
-    frame[15] = 0x0D;
-    frame[16] = 0x0A;
+    frame[9] = 0x0D;
+    frame[10] = 0x0A;
 
     USART1_Send_Bytes(frame, sizeof(frame));
 }

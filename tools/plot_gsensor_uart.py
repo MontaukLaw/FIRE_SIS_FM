@@ -1,6 +1,5 @@
 import argparse
 import collections
-import struct
 import sys
 
 import matplotlib.animation as animation
@@ -10,16 +9,8 @@ import serial
 
 HEADER = b"\xA5\x5A"
 TYPE_RAW = 0x01
-TYPE_EVENT = 0x02
 TAIL = b"\r\n"
-RAW_FRAME_SIZE = 17
-EVENT_FRAME_SIZE = 13
-
-FAIL_PEAK = 0x01
-FAIL_ENERGY = 0x02
-FAIL_ACTIVE = 0x04
-FAIL_REBOUND = 0x08
-FAIL_COOLDOWN = 0x10
+RAW_FRAME_SIZE = 11
 
 
 def parse_args():
@@ -32,59 +23,41 @@ def parse_args():
     return parser.parse_args()
 
 
-def fail_mask_to_text(fail_mask):
-    if fail_mask == 0:
-        return "OK"
-
-    reasons = []
-    if fail_mask & FAIL_PEAK:
-        reasons.append("peak")
-    if fail_mask & FAIL_ENERGY:
-        reasons.append("energy")
-    if fail_mask & FAIL_ACTIVE:
-        reasons.append("active")
-    if fail_mask & FAIL_REBOUND:
-        reasons.append("rebound")
-    if fail_mask & FAIL_COOLDOWN:
-        reasons.append("cooldown")
-    return ",".join(reasons)
-
-
 def extract_frames(buffer):
     raw_frames = []
-    event_frames = []
 
-    while len(buffer) >= 5:
-        if buffer[0:2] != HEADER:
+    while True:
+        start = buffer.find(HEADER)
+        if start < 0:
+            if len(buffer) > 0 and buffer[-1] == HEADER[0]:
+                buffer[:] = buffer[-1:]
+            else:
+                buffer.clear()
+            break
+
+        if start > 0:
+            del buffer[:start]
+
+        if len(buffer) < RAW_FRAME_SIZE:
+            break
+
+        frame = bytes(buffer[:RAW_FRAME_SIZE])
+
+        if frame[0:2] != HEADER or frame[9:11] != TAIL:
             del buffer[0]
             continue
 
-        frame_type = buffer[2]
-
-        if frame_type == TYPE_RAW:
-            if len(buffer) < RAW_FRAME_SIZE:
-                break
-            if buffer[15:17] != TAIL:
-                del buffer[0]
-                continue
-            raw_frames.append(struct.unpack("<hhhhhh", buffer[3:15]))
+        if frame[2] != TYPE_RAW:
             del buffer[:RAW_FRAME_SIZE]
             continue
 
-        if frame_type == TYPE_EVENT:
-            if len(buffer) < EVENT_FRAME_SIZE:
-                break
-            if buffer[11:13] != TAIL:
-                del buffer[0]
-                continue
-            success, fail_mask, peak_any, energy, active_samples, rebound = struct.unpack("<BBhHBB", buffer[3:11])
-            event_frames.append((success, fail_mask, peak_any, energy, active_samples, rebound))
-            del buffer[:EVENT_FRAME_SIZE]
-            continue
+        x = int.from_bytes(frame[3:5], byteorder="little", signed=True)
+        y = int.from_bytes(frame[5:7], byteorder="little", signed=True)
+        z = int.from_bytes(frame[7:9], byteorder="little", signed=True)
+        raw_frames.append((x, y, z))
+        del buffer[:RAW_FRAME_SIZE]
 
-        del buffer[0]
-
-    return raw_frames, event_frames
+    return raw_frames
 
 
 def main():
@@ -105,7 +78,8 @@ def main():
     dzs = collections.deque(maxlen=args.samples)
     buffer = bytearray()
     sample_idx = 0
-    latest_event_text = "No event yet"
+    latest_event_text = "RAW frame mode"
+    prev_xyz = None
 
     fig, (ax_raw, ax_delta) = plt.subplots(2, 1, sharex=True)
 
@@ -132,14 +106,22 @@ def main():
     ax_delta.legend(loc="upper right")
 
     def update(_frame):
-        nonlocal sample_idx, latest_event_text
+        nonlocal sample_idx, latest_event_text, prev_xyz
 
         chunk = ser.read(ser.in_waiting or RAW_FRAME_SIZE)
         if chunk:
             buffer.extend(chunk)
-            raw_frames, event_frames = extract_frames(buffer)
+            raw_frames = extract_frames(buffer)
 
-            for x, y, z, dx, dy, dz in raw_frames:
+            for x, y, z in raw_frames:
+                if prev_xyz is None:
+                    dx = dy = dz = 0
+                else:
+                    dx = x - prev_xyz[0]
+                    dy = y - prev_xyz[1]
+                    dz = z - prev_xyz[2]
+
+                prev_xyz = (x, y, z)
                 ts.append(sample_idx)
                 xs.append(x)
                 ys.append(y)
@@ -149,13 +131,7 @@ def main():
                 dzs.append(dz)
                 sample_idx += 1
 
-            for success, fail_mask, peak_any, energy, active_samples, rebound in event_frames:
-                latest_event_text = (
-                    f"{'PASS' if success else 'FAIL'} "
-                    f"reason={fail_mask_to_text(fail_mask)} "
-                    f"peak={peak_any} energy={energy} active={active_samples} rebound={rebound}"
-                )
-                print(latest_event_text)
+            latest_event_text = f"RAW frame mode | samples={sample_idx}"
 
         if ts:
             line_x.set_data(ts, xs)

@@ -13,6 +13,7 @@ void APP_Config(void);
 void System_Clock_Config_HSI_24Mhz(void);
 void RM_Init(void);
 void Array_Write_Init(void);
+void delay_100us(void);
 
 float ema_float(float last, float now, uint16_t alpha_num, uint16_t alpha_den);
 

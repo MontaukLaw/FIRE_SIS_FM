@@ -10,7 +10,8 @@ void APP_Config(void)
     I2C_GPIO_Init(); // I2C GPIO初始化
     // IWDG_Init(); // 看门狗初始化
 
-    APP_TimConfig();     // 定时器初始化
+    // APP_TimConfig();     // 定时器初始化
+
     USART1_Init(115200); // 初始化串口
 
     /* I2C initialization */
@@ -103,6 +104,30 @@ float low_filter_op(float pre_val, float new_val, float *data_ptr, float alpha)
     float val = pre_val * (1 - alpha) + new_val * alpha;
     *data_ptr = val;
     return val;
+}
+
+void delay_100us(void)
+{
+    uint32_t ticks_needed = SystemCoreClock / 10000U;
+    uint32_t reload = SysTick->LOAD + 1U;
+    uint32_t prev = SysTick->VAL;
+    uint32_t elapsed = 0;
+
+    while (elapsed < ticks_needed)
+    {
+        uint32_t now = SysTick->VAL;
+
+        if (prev >= now)
+        {
+            elapsed += prev - now;
+        }
+        else
+        {
+            elapsed += prev + (reload - now);
+        }
+
+        prev = now;
+    }
 }
 
 /*****************************************************************************
