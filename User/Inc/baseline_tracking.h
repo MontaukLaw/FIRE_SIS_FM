@@ -11,12 +11,12 @@ extern struct g_baseline_tracking_t g;
 
 void reset_data(void);
 
-void WaveDetector_Init(wave_detector_t *wd);
+void wave_detector_init(wave_detector_t *wd);
 
 void WaveDetector_Process_ai(wave_detector_t *wd, uint16_t sample, uint16_t baseline);
 
 // void WaveDetector_Process(wave_detector_t *wd, float diff);
-void WaveDetector_Process(wave_detector_t *wd, float diff, uint16_t th_on, uint16_t th_off);
+void wave_detector_process(wave_detector_t *wd, float diff, uint16_t th_on, uint16_t th_off);
 
 extern wave_detector_t c0_wave_detector;
 

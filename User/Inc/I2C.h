@@ -12,4 +12,6 @@ void I2C_GPIO_Init(void);
 
 void I2C_Init(void);
 
+void I2C_GPIO_DeInit(void);
+
 #endif

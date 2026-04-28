@@ -13,6 +13,10 @@ void play_voice_base_g(float combin_acc);
 
 void shake_and_play_task(void);
 
+void simple_shake_and_play_task(void);
+
 extern uint8_t shaked;
+
+extern uint32_t last_play_ts;
 
 #endif

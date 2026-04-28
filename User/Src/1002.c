@@ -2,14 +2,23 @@
 #include "main.h"
 #include "I2C.h"
 
+#define RM1002_DEBUG 0
+
+#if RM1002_DEBUG
+#define RM1002_LOG(...) printf(__VA_ARGS__)
+#else
+#define RM1002_LOG(...)
+#endif
+
 // 动态阈值
 uint8_t cal_data[] = {0x1f, 0x2f, 0x4f, 0x8f};                             // 各通道的校准值
 uint8_t cal_mask[] = {0x01, 0x02, 0x04, 0x08};                             // 各通道的掩码
 volatile float last_c_value[SENSOR_NUM] = {0.0};                           // 上一帧传感器中间量
 volatile float diff_c_value[SENSOR_NUM] = {0.0};                           // 差值
-volatile float c_real_time_value[SENSOR_NUM] = {0.0};                          // 传感器中间量
+volatile float c_real_time_value[SENSOR_NUM] = {0.0};                      // 传感器中间量
 volatile float pre_value[SENSOR_NUM] = {0.0};                              // 上一帧值
-float parastic_cap[SENSOR_NUM] = {3.488098, 2.020049, 1.988817, 2.020808}; // 寄生电容值
+float parastic_cap[SENSOR_NUM] = {3.502045, 2.020049, 1.988817, 2.020808}; // 寄生电容值
+// 3.502045
 
 struct RM1X01_REG_CFG rm1002_defaultcfg[] = {
     {0x05, 0xf9},
@@ -97,6 +106,10 @@ static bool rm1002_reg_write(uint8_t reg_start_addr, uint8_t *reg_array, uint8_t
 {
     if (HAL_I2C_Mem_Write(&I2cHandle, (uint16_t)rm1002b_addr << 1, reg_start_addr, 1, (uint8_t *)reg_array, num, 5000) != HAL_OK)
     {
+        RM1002_LOG("rm1002 write fail addr:0x%02x reg:0x%02x err:0x%08lx\r\n",
+                   rm1002b_addr,
+                   reg_start_addr,
+                   (unsigned long)HAL_I2C_GetError(&I2cHandle));
         return false;
     }
     while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
@@ -105,11 +118,24 @@ static bool rm1002_reg_write(uint8_t reg_start_addr, uint8_t *reg_array, uint8_t
     return true;
 }
 
+void stop_rm1002(void)
+{
+    uint8_t tx_data[3] = {0x0f, 0x00, 0x80};
+
+    rm1002_reg_write(0x17, tx_data, 1, DEFAULE_I2C_ADDR_3);
+    rm1002_reg_write(0x16, tx_data + 1, 1, DEFAULE_I2C_ADDR_3);
+    rm1002_reg_write(0x15, tx_data + 2, 1, DEFAULE_I2C_ADDR_3);
+}
+
 // RM1002B系列连续读寄存器；建议一次性读寄存器不超过3个
 static bool rm1002_reg_read(uint8_t reg_start_addr, uint8_t *reg_array, uint8_t num, uint8_t rm1002b_addr)
 {
     if (HAL_I2C_Mem_Read(&I2cHandle, (uint16_t)rm1002b_addr << 1, reg_start_addr, 1, (uint8_t *)reg_array, num, 5000) != HAL_OK)
     {
+        RM1002_LOG("rm1002 read fail addr:0x%02x reg:0x%02x err:0x%08lx\r\n",
+                   rm1002b_addr,
+                   reg_start_addr,
+                   (unsigned long)HAL_I2C_GetError(&I2cHandle));
         return false;
     }
     while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
@@ -175,9 +201,22 @@ void rm1002_init(uint8_t rm1002_addr)
     uint8_t rxbuf[4] = {0};
     uint8_t wdata[8] = {0x80, 0x80, 0x80, 0x80, 0x7f, 0x7f, 0x7f, 0x7f};
     uint8_t data = 0x00;
+    bool ok;
+
+#if RM1002_DEBUG
+    RM1002_LOG("rm1002 init target:0x%02x state:%d err:0x%08lx\r\n",
+               rm1002_addr,
+               HAL_I2C_GetState(&I2cHandle),
+               (unsigned long)HAL_I2C_GetError(&I2cHandle));
+    RM1002_LOG("rm1002 ready default 0x2b:%d target 0x%02x:%d\r\n",
+               HAL_I2C_IsDeviceReady(&I2cHandle, (uint16_t)0x2b << 1, 3, 50),
+               rm1002_addr,
+               HAL_I2C_IsDeviceReady(&I2cHandle, (uint16_t)rm1002_addr << 1, 3, 50));
+#endif
 
     data = 0xcc;
-    rm1002_reg_write(0x6f, &data, 1, rm1002_addr);
+    ok = rm1002_reg_write(0x6f, &data, 1, rm1002_addr);
+    RM1002_LOG("rm1002 soft reset target 0x%02x ok:%d\r\n", rm1002_addr, ok);
     HAL_Delay(10);
 
     // RM1002B复位后地址都是0x2b，根据目标地址写入相应配置值
@@ -199,17 +238,29 @@ void rm1002_init(uint8_t rm1002_addr)
         return; // 无效地址，直接返回
     }
 
-    rm1002_reg_write(0x59, &data, 1, 0x2b);
+    ok = rm1002_reg_write(0x59, &data, 1, 0x2b);
+    RM1002_LOG("rm1002 set addr via 0x2b data:0x%02x ok:%d\r\n", data, ok);
     HAL_Delay(10);
 
-    if (rm1002_reg_read(0x70, rxbuf, 1, rm1002_addr) == false)
+#if RM1002_DEBUG
+    RM1002_LOG("rm1002 ready after set default 0x2b:%d target 0x%02x:%d\r\n",
+               HAL_I2C_IsDeviceReady(&I2cHandle, (uint16_t)0x2b << 1, 3, 50),
+               rm1002_addr,
+               HAL_I2C_IsDeviceReady(&I2cHandle, (uint16_t)rm1002_addr << 1, 3, 50));
+#endif
+
+    ok = rm1002_reg_read(0x70, rxbuf, 1, rm1002_addr);
+    if (ok == false)
     {
         // 读取who am I 地址
-        printf("read id error\r\n");
+        RM1002_LOG("read id error target:0x%02x err:0x%08lx\r\n",
+                   rm1002_addr,
+                   (unsigned long)HAL_I2C_GetError(&I2cHandle));
+        return;
     }
     else
     {
-        printf("rm1002 id: 0x%02x\r\n", rxbuf[0]);
+        RM1002_LOG("rm1002 id: 0x%02x\r\n", rxbuf[0]);
     }
 
     data = 0x00;
@@ -379,11 +430,6 @@ void get_parastic_cap(uint8_t rm1002_addr, uint8_t start_idx)
     }
 }
 
-void get_all_parastic_cap(void)
-{
-    get_parastic_cap(DEFAULE_I2C_ADDR_3, 0);
-}
-
 void print_parastic_cap(void)
 {
     uint16_t i = 0;
@@ -393,3 +439,10 @@ void print_parastic_cap(void)
     }
     printf("\r\n");
 }
+
+void get_all_parastic_cap(void)
+{
+    get_parastic_cap(DEFAULE_I2C_ADDR_3, 0);
+    print_parastic_cap();
+}
+

@@ -3,4 +3,6 @@
 
 void sleep_check_task(void);
 
+void sleep_test_task(void);
+
 #endif 

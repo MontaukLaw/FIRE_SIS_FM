@@ -9,7 +9,9 @@
 #include "tim.h"
 #include "I2C.h"
 
-void APP_Config(void);
+#define DEBUG_LOG_ENABLE 0
+
+void app_config(void);
 void System_Clock_Config_HSI_24Mhz(void);
 void RM_Init(void);
 void Array_Write_Init(void);
@@ -24,5 +26,11 @@ float low_filter_op(float pre_val, float new_val, float *data_ptr, float alpha);
 int is_timeout(tick start_time, tick interval);
 
 tick get_diff_tick(tick cur_tick, tick prior_tick);
+
+void APP_Config_Without_UART(void);
+
+void rm_init(void);
+
+void show_running(void);
 
 #endif

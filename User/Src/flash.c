@@ -179,6 +179,7 @@ void Flash_Init(void)
     Flash_Read(FLASH_COE_ADDR, sizeof(coe_buffer), (uint32_t *)coe_buffer);
     MCU_Status = Flash_Read_Status(FLASH_STATUS_ADDR);
     timer_coe = Flash_Read_Status(FLASH_TIMER_ADDR);
+    
     // 修正寄生电容
     uint8_t i;
     for (i = 0; i < SENSOR_NUM; i++)

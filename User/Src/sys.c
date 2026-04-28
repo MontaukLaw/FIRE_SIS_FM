@@ -1,6 +1,45 @@
 #include "sys.h"
 
-void APP_Config(void)
+void rm_init(void)
+{
+    I2C_GPIO_Init(); // I2C GPIO初始化
+    I2C_Init();
+    rm1002_init(DEFAULE_I2C_ADDR_3);
+}
+
+void app_config(void)
+{
+    HAL_Init(); // HAL库初始化
+
+    System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+
+    APP_GPIOInit(); // GPIO初始化
+
+    // I2C_GPIO_Init(); // I2C GPIO初始化
+
+    // IWDG_Init(); // 看门狗初始化
+
+    // APP_TimConfig();     // 定时器初始化
+
+#if DEBUG_LOG_ENABLE
+    USART1_Init(115200); // 初始化串口
+#endif 
+
+    /* I2C initialization */
+    // I2C_Init();
+
+    // 锐盟初始化
+    // rm1002_init(DEFAULE_I2C_ADDR_3);
+
+    // 用这个合并
+    rm_init();
+
+    // RM_Init(); // 锐盟初始化
+
+    // Flash_Init(); // Flash初始化
+}
+
+void APP_Config_Without_UART(void)
 {
     HAL_Init();                      // HAL库初始化
     System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
@@ -8,11 +47,12 @@ void APP_Config(void)
     APP_GPIOInit(); // GPIO初始化
 
     I2C_GPIO_Init(); // I2C GPIO初始化
+
     // IWDG_Init(); // 看门狗初始化
 
     // APP_TimConfig();     // 定时器初始化
 
-    USART1_Init(115200); // 初始化串口
+    // USART1_Init(115200); // 初始化串口
 
     /* I2C initialization */
     I2C_Init();
@@ -173,5 +213,15 @@ tick get_diff_tick(tick cur_tick, tick prior_tick)
     else
     {
         return (cur_tick - prior_tick);
+    }
+}
+
+void show_running(void)
+{
+    static uint32_t last_show_ts = 0;
+    if(HAL_GetTick() - last_show_ts >= 1000)
+    {
+        last_show_ts = HAL_GetTick();
+        printf("Running... %lu\r\n", last_show_ts);
     }
 }

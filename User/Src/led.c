@@ -6,52 +6,28 @@ void APP_GPIOInit(void)
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	/* 时钟使能 */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	GPIO_InitStruct.Pin = LED_W_PIN;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		   /* 输出模式 */
-	GPIO_InitStruct.Pull = GPIO_PULLUP;				   /* 使能上拉 */
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH; /* 高速模式 */
-	HAL_GPIO_Init(LED_W_PORT, &GPIO_InitStruct);	   /* 使能 */
 
 	GPIO_InitStruct.Pin = VOICE_PIN;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		   /* 输出模式 */
-	GPIO_InitStruct.Pull = GPIO_PULLUP;				   /* 使能上拉 */
+	GPIO_InitStruct.Pull = GPIO_NOPULL;				   /* 使能上拉 */
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH; /* 高速模式 */
 	HAL_GPIO_Init(VOICE_PORT, &GPIO_InitStruct);	   /* 使能 */
 
-	GPIO_InitStruct.Pin = RM_VDD_PIN;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;	  /* 输出模式 */
-	GPIO_InitStruct.Pull = GPIO_PULLUP;			  /* 使能上拉 */
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 高速模式 */
-	HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct); /* 使能 */
-
-	// SC7A20_VDD引脚
-	GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		  /* 输出模式 */
-	GPIO_InitStruct.Pull = GPIO_PULLUP;				  /* 使能上拉 */
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	  /* 低速模式 */
-	HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
-
-	// led on
-	// HAL_GPIO_WritePin(LED_W_PORT, LED_W_PIN, GPIO_PIN_SET);
+	// // SC7A20_VDD引脚
+	// GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
+	// GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		  /* 输出模式 */
+	// GPIO_InitStruct.Pull = GPIO_NOPULL;				  /* 使能上拉 */
+	// GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	  /* 低速模式 */
+	// HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
 
 	// 拉低voice引脚
 	HAL_GPIO_WritePin(VOICE_PORT, VOICE_PIN, GPIO_PIN_RESET);
 
 	// 拉高接通SC7A20_VDD引脚
-	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
+	// HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
 
-	// 拉高RM_VDD引脚
-	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
-
-	HAL_Delay(200);
-
-	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
-	
+	// HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
 }
 
 /**

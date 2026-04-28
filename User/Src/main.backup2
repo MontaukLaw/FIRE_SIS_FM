@@ -1,0 +1,384 @@
+#include "main.h"
+#include "tap_algo.h"
+
+#define MAIN_DEBUG 0
+
+#if MAIN_DEBUG
+#define MAIN_LOG(...) printf(__VA_ARGS__)
+#else
+#define MAIN_LOG(...)
+#endif
+
+uint8_t shaked = 0;
+static uint32_t gsensor_uart_stream_until = 0;
+
+static void APP_ExtiConfig(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+#if 0
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Pin = G_SENSOR_INT_PIN;
+    HAL_GPIO_Init(G_SENSOR_INT_PORT, &GPIO_InitStruct);
+#endif
+
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Pin = NFC_INT_PIN;
+    HAL_GPIO_Init(NFC_INT_PORT, &GPIO_InitStruct);
+
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+}
+
+TapCtx tap_ctx;
+// Tap_Process() 运算时间大概是650us
+// sc7a20_read_acc_raw() 运行时间大概是6个ms
+int main(void)
+{
+    uint32_t last_sample_ts = 0;
+    uint32_t last_debug_ts = 0;
+
+    APP_Config();
+
+    APP_ExtiConfig();
+
+    // delay 200ms
+    HAL_Delay(200);
+
+    // sc7a20_init();
+
+    Tap_Init(&tap_ctx);
+
+    WaveDetector_Init(&c0_wave_detector);
+
+    MAIN_LOG("Sys start\r\n");
+    bool tap_detected = false;
+    uint8_t counter = 0;
+    uint16_t i;
+
+    while (1)
+    {
+        read_rmof_addres3();
+
+        baseline_tracking((float *)c_real_time_value);
+
+        WaveDetector_Process(&c0_wave_detector, result_data[0], g.base_line[0] * K_TH_F, g.base_line[0] * K_TH_OFF_F);
+        
+        // uart_send_multi_data();
+
+        play_voice_base_wave_detector(c0_wave_detector);
+
+        HAL_Delay(1);
+
+        simple_shake_and_play_task();
+
+        sleep_check_task();
+    }
+
+    while (1)
+    {
+        read_rmof_addres3();
+        print_1002_data();
+        printf("Running\r\n");
+        HAL_Delay(1000);
+    }
+
+    while (1)
+    {
+        // printf("Running\r\n");
+        // HAL_Delay(1000);
+
+        // sleep_check_task();
+
+        HAL_Delay(3000);
+
+        __HAL_GPIO_EXTI_CLEAR_IT(NFC_INT_PIN);
+
+        // 进入睡眠模式前，先关闭 SysTick 中断，防止它唤醒 MCU
+        HAL_SuspendTick();
+
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        // 程序会在这里暂停.
+
+        System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+        HAL_ResumeTick();
+
+        // sleep_test_task();
+    }
+
+    while (1)
+    {
+        uint32_t now = HAL_GetTick();
+
+        /* 200Hz: 每 5ms 采样一次，只跑新的整数状态机。 */
+        if ((now - last_sample_ts) < 5U)
+            continue;
+
+        sc7a20_reg_read_bytes_public(sc7a20_acc_data);
+
+        tap_detected = Tap_Process(&tap_ctx, sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2]);
+        if (tap_detected)
+        {
+            play_voice(1);
+        }
+
+        // uart_send_gsensor_axes(sc7a20_acc_data[0], sc7a20_acc_data[1], sc7a20_acc_data[2]);
+
+        last_sample_ts = now;
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == G_SENSOR_INT_PIN)
+    {
+    }
+    else if (GPIO_Pin == NFC_INT_PIN)
+    {
+   
+        shaked = 1;
+        // printf("KeyDown\r\n");
+        MAIN_LOG("Key down\r\n");
+    }
+}
+
+int main_low_pwr(void)
+{
+    uint32_t last_sample_ts = 0;
+    uint32_t last_debug_ts = 0;
+
+    HAL_Init();                      // HAL库初始化
+    System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+
+    APP_ExtiConfig();
+
+    while (1)
+    {
+        HAL_Delay(3000);
+
+        __HAL_GPIO_EXTI_CLEAR_IT(G_SENSOR_INT_PIN);
+        __HAL_GPIO_EXTI_CLEAR_IT(NFC_INT_PIN);
+
+        // 进入睡眠模式前，先关闭 SysTick 中断，防止它唤醒 MCU
+        HAL_SuspendTick();
+
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        // 程序会在这里暂停.
+
+        System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+        HAL_ResumeTick();
+    }
+}
+
+static void GPIO_LowPower_Config(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    GPIO_InitStruct.Pin = GPIO_PIN_All;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_All;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_All;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+TapCtx tap_ctx;
+// Tap_Process() 运算时间大概是650us
+// sc7a20_read_acc_raw() 运行时间大概是6个ms
+int main_tested(void)
+{
+    uint32_t last_sample_ts = 0;
+    uint32_t last_debug_ts = 0;
+
+    HAL_Init();                      // HAL库初始化
+    System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+
+    HAL_Delay(2000);
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+#if 0
+    /* 时钟使能 */
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
+    // SC7A20_VDD引脚
+    GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;      /* 模拟模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;           /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 低速模式 */
+    HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+
+    // RM_VDD引脚
+    GPIO_InitStruct.Pin = RM_VDD_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;      /* 模拟模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;           /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 低速模式 */
+    HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+
+    // RM_VDD引脚
+    GPIO_InitStruct.Pin = VOICE_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;     /* 模拟模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;          /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 低速模式 */
+    HAL_GPIO_Init(VOICE_PORT, &GPIO_InitStruct); /* 使能 */
+
+    GPIO_InitStruct.Pin = GPIO_PIN_3 | GPIO_PIN_4;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;     /* 模拟模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;          /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 低速模式 */
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);      /* 使能 */
+
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;     /* 模拟模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;          /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 低速模式 */
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);      /* 使能 */
+
+    GPIO_InitStruct.Pin = LED_W_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;        /* 输出模式 */
+    GPIO_InitStruct.Pull = GPIO_PULLUP;                /* 使能上拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH; /* 高速模式 */
+    HAL_GPIO_Init(LED_W_PORT, &GPIO_InitStruct);       /* 使能 */
+
+    GPIO_InitStruct.Pin = VOICE_PIN;z
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;        /* 输出模式 */
+    GPIO_InitStruct.Pull = GPIO_PULLUP;                /* 使能上拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH; /* 高速模式 */
+    HAL_GPIO_Init(VOICE_PORT, &GPIO_InitStruct);       /* 使能 */
+
+    GPIO_InitStruct.Pin = RM_VDD_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;   /* 输出模式 */
+    GPIO_InitStruct.Pull = GPIO_PULLUP;           /* 使能上拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 低速模式 */
+    HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+
+    // SC7A20_VDD引脚
+    GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;       /* 输出模式 */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;               /* 无上拉下拉 */
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;      /* 低速模式 */
+    HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+
+#endif
+#if 0
+
+	// 拉高RM RST
+	HAL_GPIO_WritePin(RM_RST_PORT, RM_RST_PIN, GPIO_PIN_SET);
+
+	// 拉低voice引脚
+	HAL_GPIO_WritePin(VOICE_PORT, VOICE_PIN, GPIO_PIN_RESET);
+
+	// 拉高接通SC7A20_VDD引脚
+	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
+
+	// 拉低RM_VDD引脚
+	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
+
+	HAL_Delay(200);
+
+	HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
+#endif
+
+#if 0
+    I2C_GPIO_Init(); // I2C GPIO初始化
+
+    I2C_Init();
+#endif
+
+    APP_ExtiConfig();
+
+    HAL_Delay(200);
+
+    bool tap_detected = false;
+    uint8_t counter = 0;
+    uint16_t i;
+
+    while (0)
+    {
+
+        HAL_Delay(3000);
+
+        // RM_VDD拉低
+        HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
+        __HAL_GPIO_EXTI_CLEAR_IT(NFC_INT_PIN);
+
+        // 进入睡眠模式前，先关闭 SysTick 中断，防止它唤醒 MCU
+        HAL_SuspendTick();
+
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        // 程序会在这里暂停.
+
+        System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+        HAL_ResumeTick();
+
+        HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_SET);
+    }
+
+    while (1)
+    {
+        // printf("Running\r\n");
+        // HAL_Delay(1000);
+
+        // sleep_check_task();
+
+        HAL_Delay(3000);
+
+        // 先关闭外设供电
+        GPIO_InitStruct.Pin = RM_RST_PIN;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(RM_RST_PORT, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = RM_VDD_PIN;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct);
+
+        // 拉低RM_RST
+        HAL_GPIO_WritePin(RM_RST_PORT, RM_RST_PIN, GPIO_PIN_RESET);
+
+        // 拉低RM_VDD
+        HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
+
+        // 等一会儿, 放电
+        HAL_Delay(1000);
+
+        // GPIO_LowPower_Config();
+
+        __HAL_GPIO_EXTI_CLEAR_IT(NFC_INT_PIN);
+
+        // 进入睡眠模式前，先关闭 SysTick 中断，防止它唤醒 MCU
+        HAL_SuspendTick();
+
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        // 程序会在这里暂停.
+
+        System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
+        HAL_ResumeTick();
+
+        // sleep_test_task();
+    }
+}

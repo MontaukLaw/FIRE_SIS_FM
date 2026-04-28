@@ -3,10 +3,9 @@
 #include "tim.h"
 #include "usart.h"
 
-extern uint8_t shaked;
-extern uint32_t exti_triggered_ts;
+uint32_t exti_triggered_ts = 0;
 
-static uint32_t last_play_ts = 0;
+uint32_t last_play_ts = 0;
 
 static int16_t abs_i16(int16_t value)
 {
@@ -149,7 +148,24 @@ void play_voice_base_wave_detector(wave_detector_t wd)
     }
 
     last_run_ts = HAL_GetTick();
+    last_play_ts = HAL_GetTick();
+
     (void)last_run_ts;
+}
+
+void simple_shake_and_play_task(void)
+{
+    if (shaked == 0)
+        return;
+
+    if (HAL_GetTick() < last_play_ts + 1000)
+        return;
+
+    play_voice(1);
+
+    last_play_ts = HAL_GetTick();
+
+    shaked = 0;
 }
 
 void shake_and_play_task(void)

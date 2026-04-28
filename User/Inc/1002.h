@@ -105,4 +105,6 @@ void get_all_parastic_cap(void);
 
 void print_parastic_cap(void);
 
+void stop_rm1002(void);
+
 #endif
