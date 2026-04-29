@@ -75,5 +75,6 @@ extern float cxxx2[4];                     // RM2寄生电容值
 extern float cxxx3[4];                     // RM3寄生电容值
 
 extern uint32_t exti_triggered_ts;
+extern uint32_t last_active_ts;
 
 #endif /* __MAIN_H */

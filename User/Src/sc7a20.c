@@ -111,6 +111,62 @@ void sc7a20_init(void)
     sc7a20_reg_write(0x25, &init_data[7], 1, Sensor_Wr_Addr);
 }
 
+// 超低功耗, 仅供中断触发使。
+// 如果不够灵敏, 就修改0x32 AOI1_THS, 触发门限
+void init_gsensor_for_lp_int(void)
+{
+    uint8_t lp_init_data[] = {
+        0x1F, //  0x2F, // 0x20 CTRL_REG1: ODR=10Hz, Low-power mode, X/Y/Z enable
+        0x00, // 0x23 CTRL_REG4: FS=+-2g, HR=0, low-power orientation
+        0x31, // 0x21 CTRL_REG2: HPF on AOI1, lowest cutoff at 10Hz ODR
+        0x40, // 0x22 CTRL_REG3: AOI1 interrupt routed to INT1
+        0x02, // 0x25 CTRL_REG6: INT active low, push-pull
+        0x00, // 0x24 CTRL_REG5: INT1 非锁存
+        0x2A, // 0x30 AOI1_CFG: X/Y/Z 高低方向全参与，OR 逻辑
+        0x10, // 0x32 AOI1_THS: about 256mg at +/-2g
+        0x01  // 0x33 AOI1_DURATION: 1 sample period
+    };
+
+    /* CTRL_REG1 (0x20): ODR、工作模式、XYZ 使能。 */
+    sc7a20_reg_write(0x20, &lp_init_data[0], 1, Sensor_Wr_Addr);
+
+    /* CTRL_REG4 (0x23): BDU=1, FS=+/-2g。 */
+    sc7a20_reg_write(0x23, &lp_init_data[1], 1, Sensor_Wr_Addr);
+
+    /* CTRL_REG2 (0x21): 高通滤波参与 AOI1 中断。 */
+    sc7a20_reg_write(0x21, &lp_init_data[2], 1, Sensor_Wr_Addr);
+
+    /* CTRL_REG3 (0x22): AOI1 路由到 INT1。 */
+    sc7a20_reg_write(0x22, &lp_init_data[3], 1, Sensor_Wr_Addr);
+
+    /* CTRL_REG6 (0x25): INT2 默认配置。 */
+    sc7a20_reg_write(0x25, &lp_init_data[4], 1, Sensor_Wr_Addr);
+
+    /* CTRL_REG5 (0x24): INT1 非锁存。 */
+    sc7a20_reg_write(0x24, &lp_init_data[5], 1, Sensor_Wr_Addr);
+
+    /* AOI1_CFG (0x30): 当前按 user_define.h 的配置决定哪些轴参与中断。 */
+    sc7a20_reg_write(0x30, &lp_init_data[6], 1, Sensor_Wr_Addr);
+
+    /* AOI1_THS (0x32): 中断门限。 */
+    // 0x70 = 112 * 16mg = 1.792g   很难触发
+    // 0x60 =  96 * 16mg = 1.536g   仍然很迟钝
+    // 0x40 =  64 * 16mg = 1.024g   较迟钝，但现实很多
+    // 0x30 =  48 * 16mg = 0.768g   更容易
+    // 0x20 =  32 * 16mg = 0.512g   明显容易
+    sc7a20_reg_write(0x32, &lp_init_data[7], 1, Sensor_Wr_Addr);
+
+    /* AOI1_DURATION (0x33): 门限需要持续的采样周期数。 */
+    sc7a20_reg_write(0x33, &lp_init_data[8], 1, Sensor_Wr_Addr);
+
+}
+
+void power_down_gsensor(void)
+{
+    uint8_t val = 0x00;
+    sc7a20_reg_write(0x20, &val, 1, Sensor_Wr_Addr);
+}
+
 void init_gsensor_for_interrupt(void)
 {
 

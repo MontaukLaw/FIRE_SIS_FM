@@ -62,6 +62,8 @@ void play_voice_no_repeat(uint8_t voice_index)
     }
 
     last_play_ts = HAL_GetTick();
+
+    last_active_ts = HAL_GetTick();
 }
 
 void play_level1(void)
@@ -164,6 +166,8 @@ void simple_shake_and_play_task(void)
     play_voice(1);
 
     last_play_ts = HAL_GetTick();
+
+    last_active_ts = HAL_GetTick();
 
     shaked = 0;
 }

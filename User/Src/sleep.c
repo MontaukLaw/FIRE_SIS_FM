@@ -192,6 +192,7 @@ void sleep_test_task(void)
 // 低功耗相关
 void sleep_check_task(void)
 {
+
     static uint32_t last_run_ts = 0;
 
     if (HAL_GetTick() - last_run_ts < 1000) // 每秒检查一次
@@ -203,7 +204,7 @@ void sleep_check_task(void)
     last_run_ts = HAL_GetTick();
 
     // 检查是否静止了5秒, 如果是则进入睡眠模式
-    if (HAL_GetTick() - last_play_ts < SLEEP_CHECK_MAX)
+    if (HAL_GetTick() - last_active_ts < SLEEP_CHECK_MAX)
     {
         // printf("Skip sleep\r\n");
         return;
@@ -215,6 +216,8 @@ void sleep_check_task(void)
     // 再给一个很短的安静确认窗口
     HAL_Delay(20);
 
+    // power_down_gsensor();
+
     // deinit i2c
     HAL_I2C_DeInit(&I2cHandle);
     __HAL_I2C_RESET_HANDLE_STATE(&I2cHandle);
@@ -223,19 +226,27 @@ void sleep_check_task(void)
 
     HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(RM_RST_PORT, RM_RST_PIN, GPIO_PIN_RESET);
+
+    // gsensor下电
+    // HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
+
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     GPIO_InitStruct.Pin = RM_VDD_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;      /* 模拟模式 */
-    GPIO_InitStruct.Pull = GPIO_NOPULL;           /* 无上下拉 */
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 低速模式 */
-    HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG; /* Hold the external power switch off. */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(RM_VDD_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = RM_RST_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;      /* 模拟模式 */
-    GPIO_InitStruct.Pull = GPIO_NOPULL;           /* 无上下拉 */
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;  /* 低速模式 */
-    HAL_GPIO_Init(RM_RST_PORT, &GPIO_InitStruct); /* 使能 */
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG; /* Avoid a floating reset/input path. */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(RM_RST_PORT, &GPIO_InitStruct);
+
+    __HAL_RCC_I2C_CLK_DISABLE();
+
+    // HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
 
     SLEEP_LOG("Entering sleep mode\r\n");
 
@@ -243,7 +254,6 @@ void sleep_check_task(void)
     HAL_SuspendTick();
 
     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-    // HAL_PWR_EnterSTOPMode(PWR_DEEPLOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
 
     System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
     HAL_ResumeTick();

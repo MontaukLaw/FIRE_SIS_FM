@@ -7,6 +7,7 @@ void APP_GPIOInit(void)
 
 	/* 时钟使能 */
 	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	GPIO_InitStruct.Pin = VOICE_PIN;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		   /* 输出模式 */
@@ -14,20 +15,25 @@ void APP_GPIOInit(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH; /* 高速模式 */
 	HAL_GPIO_Init(VOICE_PORT, &GPIO_InitStruct);	   /* 使能 */
 
-	// // SC7A20_VDD引脚
-	// GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
-	// GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		  /* 输出模式 */
-	// GPIO_InitStruct.Pull = GPIO_NOPULL;				  /* 使能上拉 */
-	// GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	  /* 低速模式 */
-	// HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
+	// SC7A20_VDD引脚
+	GPIO_InitStruct.Pin = SC7A20_VDD_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;		  /* 输出模式 */
+	GPIO_InitStruct.Pull = GPIO_NOPULL;				  /* 使能上拉 */
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	  /* 低速模式 */
+	HAL_GPIO_Init(SC7A20_VDD_PORT, &GPIO_InitStruct); /* 使能 */
 
 	// 拉低voice引脚
 	HAL_GPIO_WritePin(VOICE_PORT, VOICE_PIN, GPIO_PIN_RESET);
 
 	// 拉高接通SC7A20_VDD引脚
 	// HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
 
-	// HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
+	GPIO_InitStruct.Pin = GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;		   /* 输出模式 */
+	GPIO_InitStruct.Pull = GPIO_NOPULL;				   /* 使能上拉 */
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 高速模式 */
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);	   /* 使能 */
 }
 
 /**

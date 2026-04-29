@@ -9,8 +9,9 @@ void sc7a20_reg_read_bytes_public(int16_t *xyz_val);
 
 void sc7a20_init(void);
 
+void init_gsensor_for_lp_int(void);
 void init_gsensor_for_interrupt(void);
-
+void power_down_gsensor(void);
 extern int16_t sc7a20_acc_data[];
 extern int16_t sc7a20_delta_axes[3];
 extern float sc7a20_motion_delta;
