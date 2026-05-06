@@ -48,6 +48,8 @@
 #include "iso14443b.h"
 #include "intc.h"
 #include "user_refine.h"
+#include "sim_i2c.h"
+#include "gpio_i2c.h"
 
 #define DEFAULE_I2C_ADDR_0  (0x2B) /* 锐盟地址 */
 #define DEFAULE_I2C_ADDR_1  (0x2A) 

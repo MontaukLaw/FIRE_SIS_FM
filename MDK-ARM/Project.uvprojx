@@ -386,19 +386,19 @@
           <GroupName>Core</GroupName>
           <Files>
             <File>
+              <FileName>startup_py32f002bxx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\startup_py32f002bxx.s</FilePath>
+            </File>
+            <File>
               <FileName>py32f002bxx_Start_Kit.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\EWARM\py32f002bxx_Start_Kit.c</FilePath>
+              <FilePath>..\User\Src\py32f002bxx_Start_Kit.c</FilePath>
             </File>
             <File>
               <FileName>system_py32f002b.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\EWARM\system_py32f002b.c</FilePath>
-            </File>
-            <File>
-              <FileName>startup_py32f002bxx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup_py32f002bxx.s</FilePath>
+              <FilePath>..\User\Src\system_py32f002b.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -579,6 +579,16 @@
               <FileName>tap_algo.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Src\tap_algo.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\gpio_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>sim_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Src\sim_i2c.c</FilePath>
             </File>
           </Files>
         </Group>

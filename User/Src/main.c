@@ -43,14 +43,20 @@ int main(void)
 
     app_config();
 
-    // exti_config();
+    exti_config();
 
     HAL_Delay(200);
 
     wave_detector_init(&c0_wave_detector);
 
-    power_down_gsensor();
+    // power_down_gsensor();
     // init_gsensor_for_lp_int();
+
+    // 模拟i2c初始化gsensor
+    init_gsenor_sim();
+    // init_gsensor_for_lp_int_sim();
+
+    deinit_gsensor_gpio();
 
     // init_gsensor_for_interrupt();
 
@@ -62,14 +68,15 @@ int main(void)
 
     while (0)
     {
+        // printf("Loop... %lu\r\n", HAL_GetTick());
         // if (shaked)
         // {
         //     play_voice(1);
         //     shaked = 0;
         // }
-        sc7a20_reg_read_bytes_public(acc_data);
-        MAIN_LOG("Acc: %6d %6d %6d\r\n", acc_data[0], acc_data[1], acc_data[2]);
-        HAL_Delay(500);
+        // sc7a20_get_data_sim(acc_data);
+        // MAIN_LOG("Acc: %6d %6d %6d\r\n", acc_data[0], acc_data[1], acc_data[2]);
+        // HAL_Delay(500);
     }
 
     while (0)
@@ -78,9 +85,22 @@ int main(void)
         sleep_check_task();
     }
 
-    while (1)
+    while (0)
     {
         sleep_check_task();
+    }
+    
+    while (1)
+    {
+
+        read_rmof_addres3();
+
+        baseline_tracking((float *)c_real_time_value);
+
+        wave_detector_process(&c0_wave_detector, result_data[0], g.base_line[0] * K_TH_F, g.base_line[0] * K_TH_OFF_F);
+
+        uart_send_multi_data();
+    
     }
 
     while (1)
@@ -114,7 +134,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     else if (GPIO_Pin == NFC_INT_PIN)
     {
-
         // shaked = 1;
         // printf("KeyDown\r\n");
         MAIN_LOG("Key down\r\n");

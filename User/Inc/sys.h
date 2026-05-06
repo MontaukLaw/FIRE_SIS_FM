@@ -9,7 +9,7 @@
 #include "tim.h"
 #include "I2C.h"
 
-#define DEBUG_LOG_ENABLE 0
+#define DEBUG_LOG_ENABLE 1
 
 void app_config(void);
 void System_Clock_Config_HSI_24Mhz(void);

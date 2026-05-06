@@ -29,11 +29,11 @@ void APP_GPIOInit(void)
 	// HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_SET);
 
-	GPIO_InitStruct.Pin = GPIO_PIN_7;
-	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;		   /* 输出模式 */
-	GPIO_InitStruct.Pull = GPIO_NOPULL;				   /* 使能上拉 */
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 高速模式 */
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);	   /* 使能 */
+	// GPIO_InitStruct.Pin = GPIO_PIN_7;
+	// GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;		   /* 输出模式 */
+	// GPIO_InitStruct.Pull = GPIO_NOPULL;				   /* 使能上拉 */
+	// GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; /* 高速模式 */
+	// HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);	   /* 使能 */
 }
 
 /**

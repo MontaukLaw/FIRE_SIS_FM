@@ -15,6 +15,9 @@ void app_config(void)
 
     APP_GPIOInit(); // GPIO初始化
 
+    // 初始化用于gsensor的模拟gpio
+    init_sim_i2c_gpio();
+
     // I2C_GPIO_Init(); // I2C GPIO初始化
 
     // IWDG_Init(); // 看门狗初始化

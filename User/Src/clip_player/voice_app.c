@@ -163,7 +163,7 @@ void simple_shake_and_play_task(void)
     if (HAL_GetTick() < last_play_ts + 1000)
         return;
 
-    play_voice(1);
+    // play_voice(1);
 
     last_play_ts = HAL_GetTick();
 
