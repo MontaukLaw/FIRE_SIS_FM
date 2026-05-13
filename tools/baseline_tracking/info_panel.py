@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
 )
 
 from config import DEFAULT_BAUD, DEFAULT_PORT
+from config import LEVEL_1, LEVEL_2, LEVEL_3
 
 
 STATE_TEXT = {
@@ -119,6 +120,30 @@ class InfoPanel(QWidget):
         info_layout.addWidget(state_title, state_row, 0)
         info_layout.addWidget(self.state_label, state_row, 1)
 
+        event_group = self._make_group("事件信息")
+        event_layout = QGridLayout(event_group)
+        event_layout.setHorizontalSpacing(8)
+        event_layout.setVerticalSpacing(8)
+        self.event_labels = {}
+        event_fields = [
+            ("count", "次数"),
+            ("level", "等级"),
+            ("peak", "峰值"),
+            ("width", "宽度"),
+            ("area", "积分"),
+            ("activate_value", "进入阈值"),
+        ]
+        self.event_count = 0
+        for row_index, (key, title) in enumerate(event_fields):
+            title_label = QLabel(title)
+            title_label.setStyleSheet("color: #BAC4D0;")
+            value_label = QLabel("0" if key == "count" else "--")
+            value_label.setFont(QFont("Consolas", 12, QFont.Bold))
+            value_label.setStyleSheet("color: #F5F7FA;")
+            event_layout.addWidget(title_label, row_index, 0)
+            event_layout.addWidget(value_label, row_index, 1)
+            self.event_labels[key] = value_label
+
         log_group = self._make_group("Log")
         log_layout = QVBoxLayout(log_group)
         self.log_box = QPlainTextEdit()
@@ -139,6 +164,7 @@ class InfoPanel(QWidget):
 
         layout.addWidget(serial_group, 0)
         layout.addWidget(info_group, 0)
+        layout.addWidget(event_group, 0)
         layout.addWidget(log_group, 1)
 
     def refresh_ports(self):
@@ -171,6 +197,26 @@ class InfoPanel(QWidget):
         state_color = STATE_COLOR.get(state, "#FF8A65")
         self.state_label.setText(state_text)
         self.state_label.setStyleSheet(f"color: {state_color}; padding: 8px 0;")
+
+    def update_event(self, event):
+        effective_peak = max(0, event.peak - event.activate_value)
+        self.event_count += 1
+        self.event_labels["count"].setText(str(self.event_count))
+        self.event_labels["level"].setText(self.level_text(effective_peak))
+        self.event_labels["peak"].setText(str(event.peak))
+        self.event_labels["width"].setText(str(event.width))
+        self.event_labels["area"].setText(str(event.area))
+        self.event_labels["activate_value"].setText(str(event.activate_value))
+
+    @staticmethod
+    def level_text(peak):
+        # if peak < LEVEL_1:
+            # return "低于阈值"
+        if peak < LEVEL_2:
+            return "轻"
+        if peak < LEVEL_3:
+            return "舒适"
+        return "重"
 
     def update_fps(self, fps):
         self.fps_label.setText(f"帧率: {fps:.1f} Hz")

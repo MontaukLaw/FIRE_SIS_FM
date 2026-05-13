@@ -2,10 +2,10 @@
 #define _GPIO_I2C_H_
 
 #define I2C_SCL_PORT GPIOA
-#define I2C_SCL_PIN GPIO_PIN_1
+#define I2C_SCL_PIN GPIO_PIN_0
 
 #define I2C_SDA_PORT GPIOA
-#define I2C_SDA_PIN GPIO_PIN_0
+#define I2C_SDA_PIN GPIO_PIN_1
 
 // #define GPIO_SET(gpio, val)                                     \
 //     do                                                          \

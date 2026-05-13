@@ -73,7 +73,10 @@
 #define G_SENSOR_INT_PORT GPIOA
 #define G_SENSOR_INT_PIN GPIO_PIN_7
 
-#define SLEEP_CHECK_MAX 5000
+#define KEY_INT_PORT GPIOA
+#define KEY_INT_PIN GPIO_PIN_5
+
+#define SLEEP_CHECK_MAX 60000
 
 /* =========================
  * SPI / NFC 硬件引脚
@@ -379,5 +382,7 @@
 
 #define TP_FWT_302us 2048
 #define TP_dFWT 192
+
+#define UART_RX_BUF_SIZE 64
 
 #endif

@@ -12,3 +12,16 @@ class BaselineFrame:
     @classmethod
     def from_tuple(cls, values):
         return cls(*values)
+
+
+@dataclass(frozen=True)
+class BaselineEvent:
+    peak: int
+    width: int
+    area: int
+    activate_value: int
+    state: int
+
+    @classmethod
+    def from_tuple(cls, values):
+        return cls(*values)

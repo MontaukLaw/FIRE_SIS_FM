@@ -5,7 +5,7 @@
 
 void baseline_tracking(float *sample);
 
-extern float result_data[];
+extern float diff_over_th[];
 
 extern struct g_baseline_tracking_t g;
 

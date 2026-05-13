@@ -227,9 +227,6 @@ void sleep_check_task(void)
     HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(RM_RST_PORT, RM_RST_PIN, GPIO_PIN_RESET);
 
-    // gsensor下电
-    // HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
-
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     GPIO_InitStruct.Pin = RM_VDD_PIN;
@@ -246,6 +243,8 @@ void sleep_check_task(void)
 
     __HAL_RCC_I2C_CLK_DISABLE();
 
+    deinit_gsensor_gpio();
+
     // HAL_GPIO_WritePin(SC7A20_VDD_PORT, SC7A20_VDD_PIN, GPIO_PIN_RESET);
 
     SLEEP_LOG("Entering sleep mode\r\n");
@@ -258,14 +257,15 @@ void sleep_check_task(void)
     System_Clock_Config_HSI_24Mhz(); // 系统时钟初始化
     HAL_ResumeTick();
 
-    exti_triggered_ts = HAL_GetTick(); // 重置时间戳，防止立即再次进入睡眠
+    // exti_triggered_ts = HAL_GetTick(); // 重置时间戳，防止立即再次进入睡眠
 
     SLEEP_LOG("Woke up from sleep\r\n");
-
-    // HAL_GPIO_WritePin(RM_VDD_PORT, RM_VDD_PIN, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(RM_RST_PORT, RM_RST_PIN, GPIO_PIN_SET);
 
     HAL_Delay(300);
 
     rm_init();
+
+    init_sim_i2c_gpio();
+
+    last_active_ts = HAL_GetTick();
 }

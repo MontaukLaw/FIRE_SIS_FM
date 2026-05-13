@@ -6,6 +6,7 @@ from config import PLOT_FPS
 from info_panel import InfoPanel
 from plot_panel import BaselinePlotPanel
 from serial_reader import SerialReader
+from voice_player import EventVoicePlayer
 
 
 class MainWindow(QMainWindow):
@@ -13,10 +14,13 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.reader = None
         self.frozen = False
+        self.voice_player = EventVoicePlayer(parent=self)
 
         self.setWindowTitle("Baseline Tracking Monitor")
         self.resize(1500, 860)
         self._build_ui()
+        if not self.voice_player.available:
+            self.log("Audio playback unavailable: Windows MCI backend is not available")
 
         self.plot_timer = QTimer(self)
         self.plot_timer.timeout.connect(self.plot_panel.update_curves)
@@ -61,6 +65,7 @@ class MainWindow(QMainWindow):
         self.disconnect_serial()
         self.reader = SerialReader(port, baud, self)
         self.reader.frame_received.connect(self.on_frame)
+        self.reader.event_received.connect(self.on_event)
         self.reader.fps_updated.connect(self.on_fps)
         self.reader.log_message.connect(self.log)
         self.reader.error_message.connect(self.on_error)
@@ -89,6 +94,23 @@ class MainWindow(QMainWindow):
         self.frozen = frozen
         self.log("Data display frozen" if frozen else "Data display resumed")
 
+    def on_event(self, event):
+        if not self.frozen:
+            self.info_panel.update_event(event)
+
+        effective_peak = max(0, event.peak - event.activate_value)
+        level = self.voice_player.play_for_peak(effective_peak)
+        if self.voice_player.last_error:
+            self.log(f"Audio error: {self.voice_player.last_error}")
+
+        self.log(
+            "Event: "
+            f"peak={event.peak}, width={event.width}, "
+            f"area={event.area}, activate={event.activate_value}, "
+            f"effective_peak={effective_peak}, "
+            f"level={level or 'below-threshold'}"
+        )
+
     def on_fps(self, fps, _buffer_size, dropped):
         self.info_panel.update_fps(fps)
         if dropped:
@@ -102,5 +124,6 @@ class MainWindow(QMainWindow):
         self.info_panel.append_log(message)
 
     def closeEvent(self, event):
+        self.voice_player.stop()
         self.disconnect_serial()
         super().closeEvent(event)

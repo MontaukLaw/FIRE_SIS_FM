@@ -4,12 +4,20 @@ import time
 import serial
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from config import FRAME_TAIL, PAYLOAD_LEN
-from models import BaselineFrame
+from config import (
+    EVENT_PAYLOAD_LEN,
+    FRAME_HEADER,
+    FRAME_TAIL,
+    FRAME_TYPE_EVENT,
+    FRAME_TYPE_MONITOR,
+    PAYLOAD_LEN,
+)
+from models import BaselineEvent, BaselineFrame
 
 
 class SerialReader(QThread):
     frame_received = pyqtSignal(object)
+    event_received = pyqtSignal(object)
     fps_updated = pyqtSignal(float, int, int)
     log_message = pyqtSignal(str)
     error_message = pyqtSignal(str)
@@ -52,9 +60,12 @@ class SerialReader(QThread):
                         buf[:] = buf[-65536:]
 
                     parsed = self._extract_frames(buf)
-                    for frame in parsed:
-                        self.frame_received.emit(frame)
-                        frame_count += 1
+                    for packet_type, packet in parsed:
+                        if packet_type == FRAME_TYPE_MONITOR:
+                            self.frame_received.emit(packet)
+                            frame_count += 1
+                        elif packet_type == FRAME_TYPE_EVENT:
+                            self.event_received.emit(packet)
                 else:
                     self.msleep(1)
 
@@ -79,23 +90,49 @@ class SerialReader(QThread):
         frames = []
 
         while True:
-            idx = buf.find(FRAME_TAIL)
-            if idx < 0:
+            start = buf.find(FRAME_HEADER)
+            if start < 0:
+                if buf and buf[-1] == FRAME_HEADER[0]:
+                    buf[:] = buf[-1:]
+                else:
+                    buf.clear()
                 break
 
-            start = idx - PAYLOAD_LEN
-            if start < 0:
-                del buf[: idx + len(FRAME_TAIL)]
+            if start > 0:
+                del buf[:start]
+
+            if len(buf) < 3:
+                break
+
+            frame_type = buf[2]
+            if frame_type == FRAME_TYPE_MONITOR:
+                payload_len = PAYLOAD_LEN
+            elif frame_type == FRAME_TYPE_EVENT:
+                payload_len = EVENT_PAYLOAD_LEN
+            else:
+                del buf[0]
                 continue
 
-            payload = bytes(buf[start:idx])
-            del buf[: idx + len(FRAME_TAIL)]
+            frame_len = len(FRAME_HEADER) + 1 + payload_len + len(FRAME_TAIL)
+            if len(buf) < frame_len:
+                break
+
+            if bytes(buf[frame_len - len(FRAME_TAIL):frame_len]) != FRAME_TAIL:
+                del buf[0]
+                continue
+
+            payload_start = len(FRAME_HEADER) + 1
+            payload = bytes(buf[payload_start:payload_start + payload_len])
+            del buf[:frame_len]
 
             try:
-                values = struct.unpack("<fffff", payload)
+                if frame_type == FRAME_TYPE_MONITOR:
+                    values = struct.unpack("<fffff", payload)
+                    frames.append((frame_type, BaselineFrame.from_tuple(values)))
+                else:
+                    values = struct.unpack("<HHIHB", payload)
+                    frames.append((frame_type, BaselineEvent.from_tuple(values)))
             except struct.error:
                 continue
-
-            frames.append(BaselineFrame.from_tuple(values))
 
         return frames

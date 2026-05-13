@@ -26,7 +26,7 @@ void app_config(void)
 
 #if DEBUG_LOG_ENABLE
     USART1_Init(115200); // 初始化串口
-#endif 
+#endif
 
     /* I2C initialization */
     // I2C_Init();
@@ -222,7 +222,7 @@ tick get_diff_tick(tick cur_tick, tick prior_tick)
 void show_running(void)
 {
     static uint32_t last_show_ts = 0;
-    if(HAL_GetTick() - last_show_ts >= 1000)
+    if (HAL_GetTick() - last_show_ts >= 1000)
     {
         last_show_ts = HAL_GetTick();
         printf("Running... %lu\r\n", last_show_ts);

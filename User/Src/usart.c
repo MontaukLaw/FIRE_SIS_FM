@@ -3,10 +3,10 @@
 
 UART_HandleTypeDef UartHandle; // 串口句柄
 
-volatile uint16_t G_setFlag = 0x00;    // 状态标识
-volatile uint8_t G_USART1_RX_Flag = 0; // 空闲中断标记
-uint8_t G_USART1_RX_Buffer[64] = {0};  // 串口1接收缓冲区
-uint32_t G_USART1_RX_Count = 0;        // 串口1接收计数
+volatile uint16_t G_setFlag = 0x00;                 // 状态标识
+volatile uint8_t G_USART1_RX_Flag = 0;              // 空闲中断标记
+uint8_t G_USART1_RX_Buffer[UART_RX_BUF_SIZE] = {0}; // 串口1接收缓冲区
+uint32_t G_USART1_RX_Count = 0;                     // 串口1接收计数
 
 /**
  * @brief USART1 GPIO初始化
@@ -72,7 +72,7 @@ void USART1_IRQHandler(void)
 {
     if ((USART1->SR & (1 << 5)) != 0) // 接收存入数组中
     {
-        if (G_USART1_RX_Count < 256) // 防止溢出
+        if (G_USART1_RX_Count < UART_RX_BUF_SIZE) // 防止溢出
         {
             G_USART1_RX_Buffer[G_USART1_RX_Count] = (uint8_t)USART1->DR; // 读取数据
             G_USART1_RX_Count++;
@@ -148,6 +148,11 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 }
 
 __IO static uint8_t tx_buf[64] = {0};
+
+#define BASELINE_UART_HEAD0 0xA5
+#define BASELINE_UART_HEAD1 0x5A
+#define BASELINE_UART_TYPE_MONITOR 0x10
+#define BASELINE_UART_TYPE_EVENT 0x11
 void uart_send_data(float *data)
 {
 
@@ -163,31 +168,62 @@ void uart_send_data(float *data)
 
 void uart_send_multi_data(void)
 {
-    float result = result_data[0];
+    float result = diff_over_th[0];
+    uint8_t payload_offset = 3;
+
+    tx_buf[0] = BASELINE_UART_HEAD0;
+    tx_buf[1] = BASELINE_UART_HEAD1;
+    tx_buf[2] = BASELINE_UART_TYPE_MONITOR;
 
     // 第一步, 复制通道1最终数据
-    memcpy((uint8_t *)tx_buf, (uint8_t *)&result, sizeof(float));
+    memcpy((uint8_t *)tx_buf + payload_offset, (uint8_t *)&result, sizeof(float));
 
     // 第二步, 复制通道1基线值
-    memcpy((uint8_t *)tx_buf + 4, (uint8_t *)&g.base_line[0], sizeof(float));
+    memcpy((uint8_t *)tx_buf + payload_offset + 4, (uint8_t *)&g.base_line[0], sizeof(float));
 
-    // 第三步, 复制通道1噪声值
+    // 第三步, 触发阈值
     float diff = g.base_noise[0] * K_TH_F;
-    memcpy((uint8_t *)tx_buf + 8, (uint8_t *)&diff, sizeof(float));
+    // float diff = c_real_time_value[0] - g.base_line[0];
+    memcpy((uint8_t *)tx_buf + payload_offset + 8, (uint8_t *)&diff, sizeof(float));
 
     // 第四步, 复制通道1采样值
-    memcpy((uint8_t *)tx_buf + 12, (uint8_t *)&c_real_time_value[0], sizeof(float));
+    memcpy((uint8_t *)tx_buf + payload_offset + 12, (uint8_t *)&c_real_time_value[0], sizeof(float));
 
     // float if_over_th = (float)g.over_th[0];
     // memcpy(tx_buf + 16, (uint8_t *)&if_over_th, sizeof(float));
     float status = (float)c0_wave_detector.state;
-    memcpy((uint8_t *)tx_buf + 16, (uint8_t *)&status, sizeof(float));
+    memcpy((uint8_t *)tx_buf + payload_offset + 16, (uint8_t *)&status, sizeof(float));
 
-    tx_buf[20] = 0x0d; // \r
-    tx_buf[21] = 0x0a; // \n
+    tx_buf[23] = 0x0d; // \r
+    tx_buf[24] = 0x0a; // \n
 
     // 发送数据到U0 DMA
-    USART1_Send_Bytes((uint8_t *)tx_buf, 22);
+    USART1_Send_Bytes((uint8_t *)tx_buf, 25);
+}
+
+void uart_send_wave_event(void)
+{
+    uint8_t payload_offset = 3;
+
+    if (!c0_wave_detector.event_flag)
+    {
+        return;
+    }
+
+    tx_buf[0] = BASELINE_UART_HEAD0;
+    tx_buf[1] = BASELINE_UART_HEAD1;
+    tx_buf[2] = BASELINE_UART_TYPE_EVENT;
+
+    memcpy((uint8_t *)tx_buf + payload_offset, (uint8_t *)&c0_wave_detector.event_peak, sizeof(uint16_t));
+    memcpy((uint8_t *)tx_buf + payload_offset + 2, (uint8_t *)&c0_wave_detector.event_width, sizeof(uint16_t));
+    memcpy((uint8_t *)tx_buf + payload_offset + 4, (uint8_t *)&c0_wave_detector.event_area, sizeof(uint32_t));
+    memcpy((uint8_t *)tx_buf + payload_offset + 8, (uint8_t *)&c0_wave_detector.activate_value, sizeof(uint16_t));
+    tx_buf[payload_offset + 10] = c0_wave_detector.state;
+
+    tx_buf[14] = 0x0d; // \r
+    tx_buf[15] = 0x0a; // \n
+
+    USART1_Send_Bytes((uint8_t *)tx_buf, 16);
 }
 
 void uart_send_float_data(float data)
@@ -243,4 +279,3 @@ int fputc(int ch, FILE *f)
     USART1_Send_Byte(ch);
     return ch;
 }
-

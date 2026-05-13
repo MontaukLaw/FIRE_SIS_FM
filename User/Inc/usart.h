@@ -24,6 +24,7 @@ void USART1_Send_Hex8(uint8_t value);
 void uart_send_data(float *data);
 
 void uart_send_multi_data(void);
+void uart_send_wave_event(void);
 
 void uart_send_float_data(float data);
 

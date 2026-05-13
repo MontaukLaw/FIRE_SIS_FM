@@ -1,7 +1,7 @@
 
 #include "main.h"
 
-float result_data[TOTAL_SENSOR_NUMBER] = {0}; // 最终结果数据
+float diff_over_th[TOTAL_SENSOR_NUMBER] = {0}; // 最终结果数据
 
 struct g_baseline_tracking_t g = {0}; // 全局变量，记录基线/噪声/强度/质心等数据
 
@@ -108,7 +108,7 @@ static void compute_strength_and_centroid_v3(float *sample)
         g.C_act = C_act;
 
         // 数据准备完毕，更新全局变量
-        memcpy(result_data, g.val_over_threshold, sizeof(float) * TOTAL_SENSOR_NUMBER);
+        memcpy(diff_over_th, g.val_over_threshold, sizeof(float) * TOTAL_SENSOR_NUMBER);
     }
 }
 
@@ -437,7 +437,7 @@ void reset_data(void)
 {
 
     memset(&g, 0, sizeof(g));
-    memset(result_data, 0, sizeof(result_data));
+    memset(diff_over_th, 0, sizeof(diff_over_th));
 }
 
 void wave_detector_init(wave_detector_t *wd)

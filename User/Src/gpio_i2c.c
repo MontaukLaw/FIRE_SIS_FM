@@ -88,7 +88,7 @@ void IIC_NAck(void)
 
 // 等待应答信号到来
 // 返回值:1       接收应答失败
-//        0          接收应答成功
+//      0        接收应答成功
 uint8_t IIC_Wait_Ack(void)
 {
     uint16_t Wait_TOut_Cnt = 0; // 设置等待应答信号超时计数

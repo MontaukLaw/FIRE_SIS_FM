@@ -34,6 +34,7 @@ void deinit_gsensor_gpio(void)
 
 void init_gsenor_sim(void)
 {
+
     i2c_write_reg(0x20, 0x3f, gsensor_wr_addr);
     i2c_write_reg(0x23, 0x88, gsensor_wr_addr); // +-2g
     i2c_write_reg(0x21, 0x31, gsensor_wr_addr);
@@ -41,9 +42,8 @@ void init_gsenor_sim(void)
     i2c_write_reg(0x25, 0x00, gsensor_wr_addr); // H_LACTIVE=0, 中断高电平
     i2c_write_reg(0x24, 0x00, gsensor_wr_addr); // FIFO关闭, INT1非锁存, 4D检测关闭
     i2c_write_reg(0x30, 0x2a, gsensor_wr_addr); // XYZ高事件或检测
-    i2c_write_reg(0x32, 0x05, gsensor_wr_addr); // 检测门限: 1-127, 值越小, 灵敏度越高
-    i2c_write_reg(0x33, 0x00, gsensor_wr_addr); // 检测持续时间, 单位为ODR周期数, 0表示只要超过门限就触发
-
+    i2c_write_reg(0x32, 0x10, gsensor_wr_addr); // 检测门限: 1-127, 值越小, 灵敏度越高
+    i2c_write_reg(0x33, 0x02, gsensor_wr_addr); // 检测持续时间, 单位为ODR周期数, 0表示只要超过门限就触发
 }
 
 void init_gsensor_for_lp_int_sim(void)
@@ -110,7 +110,7 @@ void sc7a20_get_data_sim(int16_t *xyz_val)
 
     i2c_read_bytes(reg_start_addr, reg_array, 6, gsensor_wr_addr);
 
-    xyz_val[0] = (int16_t)((uint16_t)reg_array[1] << 8 | (uint16_t)reg_array[0]) >> 6;
-    xyz_val[1] = (int16_t)((uint16_t)reg_array[3] << 8 | (uint16_t)reg_array[2]) >> 6;
-    xyz_val[2] = (int16_t)((uint16_t)reg_array[5] << 8 | (uint16_t)reg_array[4]) >> 6;
+    xyz_val[0] = (int16_t)((uint16_t)reg_array[1] << 8 | (uint16_t)reg_array[0]) >> 4;
+    xyz_val[1] = (int16_t)((uint16_t)reg_array[3] << 8 | (uint16_t)reg_array[2]) >> 4;
+    xyz_val[2] = (int16_t)((uint16_t)reg_array[5] << 8 | (uint16_t)reg_array[4]) >> 4;
 }
